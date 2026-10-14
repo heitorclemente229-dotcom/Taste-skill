@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import { useRef, type RefObject } from "react";
 import { cn } from "@/lib/cn";
 import { useReduced } from "@/components/motion/primitives";
 
@@ -28,7 +28,7 @@ export function ArcDivider({
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const reduce = useReduced();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end 0.35"] });
+  const { scrollYProgress } = useScroll({ target: ref as unknown as RefObject<HTMLElement | null>, offset: ["start end", "end 0.35"] });
   const amplitude = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [110, 0]);
   const d = useTransform(amplitude, (a) => {
     const c = (a * 4) / 3;

@@ -27,7 +27,7 @@ export function Hero() {
 
   return (
     <section ref={ref} id="inicio" aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-[var(--header-h)]">
-      <div className="container-edge relative grid min-h-[calc(100dvh-var(--header-h))] grid-cols-1 content-center gap-y-14 pb-14 pt-8 lg:grid-cols-12 lg:gap-x-6 lg:pb-16 lg:pt-4">
+      <div className="container-edge relative grid min-h-[calc(100dvh-var(--header-h))] grid-cols-1 content-center gap-y-14 pb-14 pt-8 lg:grid-cols-12 lg:gap-x-6 lg:pb-28 lg:pt-4">
         <motion.div style={{ y: copyY }} className="relative z-10 lg:col-span-7 lg:self-center">
           <MaskLines
             as="h1"
@@ -120,16 +120,51 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Indicador de rolagem: um traço de luz descendo pela linha. */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute bottom-8 left-[var(--spacing-gutter)] hidden h-16 w-px overflow-hidden bg-deep/12 lg:block"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={reduce ? { duration: 0 } : { duration: 1, delay: 1.8 }}
-        >
-          <span className="absolute inset-x-0 top-0 h-6 animate-scroll-light bg-gradient-to-b from-transparent via-periwinkle to-transparent" />
-        </motion.div>
+        {/*
+         * Linha de referência: a mesma linha horizontal que origina o símbolo
+         * e os recortes. Desenha-se da esquerda para a direita e apoia o
+         * indicador de rolagem e três marcadores editoriais.
+         */}
+        <div className="absolute inset-x-[var(--spacing-gutter)] bottom-7 hidden lg:block">
+          <motion.span
+            aria-hidden="true"
+            className="block h-px origin-left bg-deep/12"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={reduce ? { duration: 0 } : { duration: 1.6, delay: 1.2, ease: EASE_SMILE }}
+          />
+          <div className="mt-5 grid grid-cols-12 gap-x-6">
+            <motion.div
+              aria-hidden="true"
+              className="col-span-2 flex items-center gap-3 text-[0.8125rem] text-slate"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={reduce ? { duration: 0 } : { duration: 1, delay: 1.9 }}
+            >
+              {/* Indicador de rolagem: um traço de luz descendo pela linha. */}
+              <span className="relative block h-7 w-px overflow-hidden bg-deep/15">
+                <span className="absolute inset-x-0 top-0 h-3 animate-scroll-light bg-gradient-to-b from-transparent via-periwinkle to-transparent" />
+              </span>
+              Role
+            </motion.div>
+            <ul className="col-span-10 col-start-3 grid grid-cols-3 gap-x-6 text-[0.8125rem] text-slate">
+              {hero.markers.map((marker, index) => (
+                <motion.li
+                  key={marker}
+                  className="flex items-baseline gap-3"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.9, delay: 1.7 + index * 0.12, ease: EASE_OUT }}
+                >
+                  <span aria-hidden="true" className="tabular text-[0.6875rem] tracking-[0.12em] text-accent-ink">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {marker}
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
   );

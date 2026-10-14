@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mock:webhook": "node scripts/mock-webhook.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "lucide-react": "^1.57.0",

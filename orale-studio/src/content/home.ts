@@ -9,6 +9,8 @@ export const hero = {
   titleLines: ["Sorrir,", "naturalmente."],
   lead: "Odontologia contemporânea, planejada para você.",
   secondary: { label: "Conheça a clínica", href: "#manifesto" },
+  /** Marcadores editoriais da base da primeira dobra. */
+  markers: ["Escuta atenta", "Planejamento individual", "Acompanhamento contínuo"],
 } as const;
 
 export const manifesto = {

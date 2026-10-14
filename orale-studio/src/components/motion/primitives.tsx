@@ -11,7 +11,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ElementType, type ReactNode, type RefObject } from "react";
 import { cn } from "@/lib/cn";
 import { smilePolygon } from "@/lib/smile";
 
@@ -73,10 +73,10 @@ export function Reveal({ children, className, delay = 0, y = 24, as = "div", amo
 }
 
 type MaskLinesProps = {
-  lines: ReactNode[];
+  lines: readonly ReactNode[];
   as?: ElementType;
   className?: string;
-  lineClassNames?: (string | undefined)[];
+  lineClassNames?: readonly (string | undefined)[];
   delay?: number;
   stagger?: number;
   mount?: boolean;
@@ -276,7 +276,7 @@ export function ArcLine({
   const pathRef = useRef<SVGPathElement>(null);
   const reduce = useReduced();
   const inView = useInView(ref, { once: true, amount: 0.2 });
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const { scrollYProgress } = useScroll({ target: ref as unknown as RefObject<HTMLElement | null>, offset: ["start end", "end start"] });
   const drawn = useMotionValue(0);
   const scrollDraw = useTransform(scrollYProgress, [0.05, 0.6], [0, 1]);
   const pathLength = mode === "scroll" ? (reduce ? drawn : scrollDraw) : drawn;
