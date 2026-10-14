@@ -14,7 +14,7 @@ Skills para Claude Code:
 
 As skills caveman foram instaladas com `npx @caveman-ai/cli@latest skills install <nome> --no-pixel`. A impeccable foi instalada com `npx impeccable install --providers=claude --project -y`.
 
-O binário da impeccable (~20 MB, por plataforma) não fica no git: o launcher `.claude/skills/impeccable/scripts/impeccable` baixa e verifica (sha256) na primeira execução. Os hooks de detecção de design da impeccable ficam em `.claude/settings.local.json`, que é local e não vai para o repositório; rode o comando de instalação de novo para recriá-los.
+O binário da impeccable (~20 MB, por plataforma) não fica no git: o launcher `.claude/skills/impeccable/scripts/impeccable` baixa e verifica (sha256) na primeira execução. Os hooks de detecção de design da impeccable ficam em `.claude/settings.json`: rodam o detector após cada Edit/Write, ao fim de cada resposta e no início da sessão.
 
 ## Uso
 

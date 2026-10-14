@@ -2,5 +2,5 @@
 # .claude/skills/impeccable/scripts/impeccable re-downloads it, sha256-verified, on first use.
 .claude/skills/impeccable/scripts/bin/
 
-# Personal Claude Code settings (impeccable hooks live here locally).
+# Personal Claude Code settings.
 .claude/settings.local.json
