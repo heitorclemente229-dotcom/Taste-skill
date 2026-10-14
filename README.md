@@ -16,6 +16,8 @@ As skills caveman foram instaladas com `npx @caveman-ai/cli@latest skills instal
 
 O binário da impeccable (~20 MB, por plataforma) não fica no git: o launcher `.claude/skills/impeccable/scripts/impeccable` baixa e verifica (sha256) na primeira execução. Os hooks de detecção de design da impeccable ficam em `.claude/settings.json`: rodam o detector após cada Edit/Write, ao fim de cada resposta e no início da sessão.
 
+Nas sessões do Claude Code na nuvem, o hook `.claude/hooks/session-start.sh` instala o [`agent-browser`](https://www.npmjs.com/package/agent-browser) (automação de navegador por CLI) e o aponta para o Chromium que já vem no container (`/opt/pw-browsers/chromium`), via `~/.agent-browser/config.json`, sem baixar o Chrome. Se esse Chromium não existir, ele roda `agent-browser install`. Fora da nuvem o hook não faz nada; para usar localmente, rode `npm install -g agent-browser && agent-browser install`.
+
 ## Uso
 
 - **Neste repositório:** as skills ficam em `.claude/skills/<nome>/SKILL.md` e são carregadas automaticamente pelo Claude Code.
