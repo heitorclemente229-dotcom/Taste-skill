@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   LIMITS,
@@ -72,6 +74,22 @@ describe("normalização de texto", () => {
   it("remove caracteres de controle e de direção de texto", () => {
     expect(normalizeLine("Jo\u0000a\u0007na‮ Souza​")).toBe("Joana Souza");
     expect(normalizeLine("  Ana \n\t Maria  ")).toBe("Ana Maria");
+  });
+
+  it("remove todos os caracteres invisíveis e controles C1", () => {
+    // Hífen condicional, word joiner, BOM, marca árabe, separador mongol, tag, CGJ, preenchedor hangul, NEL.
+    const hidden = "Jo\u00ADa\u2060na\uFEFF\u061C \u180ESou\u{E0041}za\u034F\u3164\u0085";
+    expect(normalizeLine(hidden)).toBe("Joana Souza");
+    expect(normalizeMultiline(`a\u0085b\u009Fc\u200Dd`)).toBe("abcd");
+  });
+
+  it("separadores de linha Unicode viram quebra de linha na mensagem", () => {
+    expect(normalizeMultiline("a\u2028b\u2029c")).toBe("a\nb\nc");
+  });
+
+  it("o código-fonte do esquema não contém caracteres invisíveis literais", () => {
+    const source = readFileSync(fileURLToPath(new URL("./schema.ts", import.meta.url)), "utf8");
+    expect(source).not.toMatch(/[\p{Cf}\p{Default_Ignorable_Code_Point}]/u);
   });
 
   it("aplica NFC", () => {
@@ -156,6 +174,25 @@ describe("bookingSchema", () => {
       expect(fieldErrorsOf({ message }).message).toBe("Por segurança, não inclua links na mensagem.");
     },
   );
+
+  it.each([
+    ["word joiner", "veja www\u2060.golpe.example/pix"],
+    ["hífen condicional", "acesse ht\u00ADtps://golpe.example"],
+    ["BOM", "www\uFEFF.golpe.example"],
+    ["largura zero", "https\u200B://golpe.example"],
+    ["tag invisível", "www\u{E002E}.golpe.example"],
+    ["largura total", "\uFF57\uFF57\uFF57\uFF0Egolpe\uFF0Eexample"],
+    ["dois-pontos de largura total", "https\uFF1A//golpe.example"],
+  ])("recusa link escondido com %s", (_label, message) => {
+    expect(fieldErrorsOf({ message }).message).toBe("Por segurança, não inclua links na mensagem.");
+  });
+
+  it("o nome precisa ter ao menos uma letra", () => {
+    for (const name of ["--", "' .", "\u0301\u0301\u0301", "...."]) {
+      expect(fieldErrorsOf({ name }).name).toBe("Informe seu nome.");
+    }
+    expect(parse({ name: "Zé" }).success).toBe(true);
+  });
 
   it("permite texto com pontos que não são links", () => {
     expect(parse({ message: "Tenho sensibilidade. Prefiro às 10h." }).success).toBe(true);

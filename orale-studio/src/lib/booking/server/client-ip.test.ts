@@ -9,8 +9,27 @@ describe("getClientIp", () => {
     expect(getClientIp(xff("203.0.113.5"), { trustProxy: false, header: "x-forwarded-for" })).toBe(DIRECT_CLIENT);
   });
 
-  it("com TRUST_PROXY usa o primeiro valor da lista", () => {
-    expect(getClientIp(xff("203.0.113.5, 10.0.0.1, 10.0.0.2"), trusted)).toBe("203.0.113.5");
+  it("com TRUST_PROXY usa o valor mais à direita (acrescentado pelo proxy confiável)", () => {
+    // O cliente forja "6.6.6.6"; o proxy (nginx, ALB, Cloudflare) acrescenta o IP real.
+    expect(getClientIp(xff("6.6.6.6, 203.0.113.5"), trusted)).toBe("203.0.113.5");
+    expect(getClientIp(xff("203.0.113.5"), trusted)).toBe("203.0.113.5");
+  });
+
+  it("valores forjados à esquerda não mudam a chave (sem fuga do limite)", () => {
+    const keys = new Set(
+      ["1.1.1.1", "2.2.2.2", "garbage", "2001:db8::1"].map((spoof) =>
+        getClientIp(xff(`${spoof}, 203.0.113.5`), trusted),
+      ),
+    );
+    expect([...keys]).toEqual(["203.0.113.5"]);
+  });
+
+  it("hops conta os proxies confiáveis a partir da direita", () => {
+    const chain = xff("6.6.6.6, 203.0.113.5, 10.0.0.1");
+    expect(getClientIp(chain, { ...trusted, hops: 2 })).toBe("203.0.113.5");
+    expect(getClientIp(chain, { ...trusted, hops: 1 })).toBe("10.0.0.1");
+    // Menos valores do que proxies: a lista não veio dos proxies esperados.
+    expect(getClientIp(chain, { ...trusted, hops: 4 })).toBe(UNKNOWN_CLIENT);
   });
 
   it("usa o cabeçalho configurado", () => {
@@ -22,7 +41,7 @@ describe("getClientIp", () => {
     expect(getClientIp(new Headers(), trusted)).toBe(UNKNOWN_CLIENT);
   });
 
-  it.each(["<script>alert(1)</script>", "999.1.1.1", "1.2.3", "localhost", "", " , 1.2.3.4", "a".repeat(100), "1.2.3.4.5"])(
+  it.each(["<script>alert(1)</script>", "999.1.1.1", "1.2.3", "localhost", "", "1.2.3.4, ", "a".repeat(100), "1.2.3.4.5"])(
     "valor forjado ou inválido (%s) vira chave desconhecida",
     (value) => {
       expect(getClientIp(xff(value), trusted)).toBe(UNKNOWN_CLIENT);

@@ -14,8 +14,12 @@ export function proxy(request: NextRequest) {
   const isHttps = forwardedProto ? forwardedProto === "https" : request.nextUrl.protocol === "https:";
 
   if (!isDev && process.env.FORCE_HTTPS === "true" && !isHttps) {
-    const target = new URL(request.nextUrl.pathname + request.nextUrl.search, canonicalOrigin(request));
+    // Caminho e consulta são atribuídos à URL canônica (nunca resolvidos como
+    // URL relativa): um caminho "//outro.site" não pode trocar o domínio.
+    const target = new URL(canonicalOrigin(request));
     target.protocol = "https:";
+    target.pathname = request.nextUrl.pathname;
+    target.search = request.nextUrl.search;
     return NextResponse.redirect(target, 308);
   }
 
@@ -45,7 +49,9 @@ function canonicalOrigin(request: NextRequest): string {
   const configured = process.env.SITE_URL;
   if (configured) {
     try {
-      return new URL(configured).origin;
+      const url = new URL(configured);
+      // Outro esquema teria origem "null" e quebraria o redirecionamento.
+      if (url.protocol === "https:" || url.protocol === "http:") return url.origin;
     } catch {
       // Valor inválido: cai para a origem da própria requisição.
     }

@@ -63,10 +63,18 @@ export const TOPIC_LABELS: Record<Topic, string> = {
 /** Nome do campo-armadilha (honeypot). Pessoas não o veem; robôs costumam preenchê-lo. */
 export const HONEYPOT_FIELD = "hp_field" as const;
 
-// Caracteres de controle (exceto quebra de linha e tabulação) e caracteres
-// invisíveis de direção de texto, usados em ataques de ofuscação.
-const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F​-‏‪-‮⁦-⁩]/g;
+// Caracteres de controle C0 e C1 (exceto tabulação e quebras de linha) e todos
+// os caracteres invisíveis: formatação (Cf: largura zero, hífen condicional,
+// controles de direção de texto, marcas de tag) e os ignoráveis por padrão
+// (preenchedores, seletores de variação). Servem para ofuscar texto e para
+// esconder links do filtro abaixo. Escritos com escapes, nunca literais.
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\p{Cf}\p{Default_Ignorable_Code_Point}]/gu;
 const URL_PATTERN = /(https?:\/\/|www\.)\S+/i;
+
+/** true quando o texto contém um link, inclusive em caracteres de largura total (NFKC). */
+function containsLink(value: string): boolean {
+  return URL_PATTERN.test(value) || URL_PATTERN.test(value.normalize("NFKC"));
+}
 
 /** Normaliza texto de uma linha: NFC, sem caracteres de controle, espaços colapsados. */
 export function normalizeLine(value: string): string {
@@ -77,7 +85,7 @@ export function normalizeLine(value: string): string {
 export function normalizeMultiline(value: string): string {
   return value
     .normalize("NFC")
-    .replace(/\r\n?/g, "\n")
+    .replace(/\r\n?|[\u2028\u2029]/g, "\n")
     .replace(CONTROL_CHARS, "")
     .replace(/\t/g, " ")
     .replace(/[ ]{2,}/g, " ")
@@ -122,7 +130,8 @@ export const bookingSchema = z
           .string()
           .min(LIMITS.nameMin, { error: "Informe seu nome." })
           .max(LIMITS.nameMax, { error: `Use até ${LIMITS.nameMax} caracteres.` })
-          .regex(/^[\p{L}\p{M}' .-]+$/u, { error: "Use apenas letras no nome." }),
+          .regex(/^[\p{L}\p{M}' .-]+$/u, { error: "Use apenas letras no nome." })
+          .regex(/\p{L}/u, { error: "Informe seu nome." }),
       ),
     phone: requiredText("Informe um telefone para contato.")
       .max(40, { error: "Telefone inválido." })
@@ -155,7 +164,7 @@ export const bookingSchema = z
         z
           .string()
           .max(LIMITS.messageMax, { error: `Use até ${LIMITS.messageMax} caracteres.` })
-          .refine((value) => !URL_PATTERN.test(value), { error: "Por segurança, não inclua links na mensagem." }),
+          .refine((value) => !containsLink(value), { error: "Por segurança, não inclua links na mensagem." }),
       )
       .optional()
       .default(""),

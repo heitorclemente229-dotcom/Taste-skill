@@ -267,6 +267,13 @@ describe("configuração ausente ou incompleta", () => {
     expect(output).not.toContain("agendamento@orale.example");
   });
 
+  it("aceita http para receptor em loopback também em produção (e2e com next start)", async () => {
+    useEnv({ ...WEBHOOK_ENV, BOOKING_WEBHOOK_URL: "http://127.0.0.1:4010/hook" }, "production");
+    const { calls } = mockFetch(ok);
+    expect((await POST(bookingRequest())).status).toBe(200);
+    expect(calls[0].url).toBe("http://127.0.0.1:4010/hook");
+  });
+
   it("aceita http para o receptor local fora de produção", async () => {
     useEnv({ ...WEBHOOK_ENV, BOOKING_WEBHOOK_URL: "http://127.0.0.1:4010/webhook" });
     const { calls } = mockFetch(ok);
@@ -399,6 +406,38 @@ describe("validação", () => {
     expect((await readJson(response)).fieldErrors).toHaveProperty("message");
   });
 
+  it("recusa link escondido com caracteres invisíveis, sem entregar", async () => {
+    const { fn } = mockFetch(ok);
+    const response = await POST(bookingRequest({ body: validInput({ message: "Pague em www\u2060.golpe.example" }) }));
+    expect(response.status).toBe(400);
+    expect((await readJson(response)).fieldErrors).toHaveProperty("message");
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("entrega o texto sem caracteres invisíveis nem controles de direção", async () => {
+    const { calls } = mockFetch(ok);
+    const response = await POST(
+      bookingRequest({ body: validInput({ message: "Ter\u00ADça \u202Eà tarde\u2066\uFEFF\u0085" }) }),
+    );
+    expect(response.status).toBe(200);
+    const payload = JSON.parse(String(calls[0].init.body));
+    expect(payload.data.message).toBe("Terça à tarde");
+  });
+
+  it.each([
+    ["constructor", '{"constructor":{"prototype":{"admin":true}},'],
+    ["prototype", '{"prototype":{"admin":true},'],
+    ["__proto__ aninhado", '{"name":{"__proto__":{"admin":true}},'],
+  ])("recusa %s sem poluir protótipos", async (_label, prefix) => {
+    const { fn } = mockFetch(ok);
+    const base = JSON.stringify(validInput());
+    const rawBody = prefix.startsWith('{"name"') ? `${prefix}${base.slice(1).replace(/"name":"[^"]*",/, "")}` : `${prefix}${base.slice(1)}`;
+    const response = await POST(bookingRequest({ rawBody }));
+    expect(response.status).toBe(400);
+    expect(({} as Record<string, unknown>).admin).toBeUndefined();
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it("recusa chaves desconhecidas sem ecoar o nome", async () => {
     const response = await POST(bookingRequest({ body: validInput({ campoSecretoXyz: 1 }) }));
     expect(response.status).toBe(400);
@@ -502,6 +541,26 @@ describe("limite de requisições", () => {
     for (let i = 0; i < 3; i += 1) expect((await POST(from("203.0.113.10", { name: "" }))).status).toBe(400);
     expect((await POST(from("203.0.113.10"))).status).toBe(429);
     expect((await POST(from("203.0.113.11"))).status).toBe(200);
+  });
+
+  it("X-Forwarded-For forjado à esquerda não escapa do limite (proxy que acrescenta)", async () => {
+    useEnv({ ...WEBHOOK_ENV, TRUST_PROXY: "true" });
+    const { fn } = mockFetch(ok);
+    // O atacante troca o primeiro valor a cada envio; o proxy acrescenta o IP real no final.
+    const spoofed = (i: number) => bookingRequest({ headers: { "x-forwarded-for": `198.18.0.${i}, 203.0.113.66` } });
+    for (let i = 0; i < 3; i += 1) expect((await POST(spoofed(i))).status).toBe(200);
+    expect((await POST(spoofed(99))).status).toBe(429);
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
+
+  it("TRUST_PROXY_HOPS=2 lê o IP do cliente atrás de dois proxies", async () => {
+    useEnv({ ...WEBHOOK_ENV, TRUST_PROXY: "true", TRUST_PROXY_HOPS: "2" });
+    mockFetch(ok);
+    const via = (client: string, spoof: string) =>
+      bookingRequest({ headers: { "x-forwarded-for": `${spoof}, ${client}, 10.0.0.1` } });
+    for (let i = 0; i < 3; i += 1) expect((await POST(via("203.0.113.70", `198.18.1.${i}`))).status).toBe(200);
+    expect((await POST(via("203.0.113.70", "198.18.1.200"))).status).toBe(429);
+    expect((await POST(via("203.0.113.71", "198.18.1.201"))).status).toBe(200);
   });
 
   it("sem TRUST_PROXY o cabeçalho de IP é ignorado (todos compartilham a chave)", async () => {
@@ -620,6 +679,36 @@ describe("Turnstile", () => {
     const { calls } = mockFetch(ok);
     expect((await POST(bookingRequest())).status).toBe(200);
     expect(calls.map((call) => call.url)).toEqual([WEBHOOK_URL]);
+  });
+
+  it("chaves presentes mas malformadas: 503 sem aceitar envio sem verificação", async () => {
+    useEnv({ ...WEBHOOK_ENV, TURNSTILE_SITE_KEY: "0x4AAA", TURNSTILE_SECRET_KEY: "segredo com espaço" });
+    const { fn } = mockFetch(ok);
+    for (const body of [validInput(), validInput({ turnstileToken: "qualquer" })]) {
+      const response = await POST(bookingRequest({ body }));
+      expect(response.status).toBe(503);
+      expect(await readJson(response)).toEqual({ ok: false, code: "unavailable" });
+    }
+    expect(fn).not.toHaveBeenCalled();
+    expect(consoleLines.join("\n")).toContain("turnstile_invalid");
+  });
+
+  it("em produção recusa token resolvido em outro domínio, sem entregar", async () => {
+    useEnv({ ...WEBHOOK_ENV, ...TURNSTILE_ENV }, "production");
+    const { calls } = turnstileFetch({ success: true, hostname: "golpe.example" });
+    const response = await POST(bookingRequest({ body: validInput({ turnstileToken: "token-de-outro-site" }) }));
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ ok: false, code: "verification_failed" });
+    expect(calls.map((call) => call.url)).toEqual([SITEVERIFY]);
+    expect(consoleLines.join("\n")).toContain("hostname_mismatch");
+  });
+
+  it("em produção aceita token resolvido no domínio do site", async () => {
+    useEnv({ ...WEBHOOK_ENV, ...TURNSTILE_ENV }, "production");
+    const { calls } = turnstileFetch({ success: true, hostname: "www.orale.example" });
+    const response = await POST(bookingRequest({ body: validInput({ turnstileToken: "token-valido" }) }));
+    expect(response.status).toBe(200);
+    expect(calls.map((call) => call.url)).toEqual([SITEVERIFY, WEBHOOK_URL]);
   });
 
   it("não gasta o token quando a entrega não está configurada", async () => {

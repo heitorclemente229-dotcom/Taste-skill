@@ -9,9 +9,16 @@ import { isIP } from "node:net";
  * cliente pode forjar X-Forwarded-For quando não há proxy confiável na
  * frente. Sem proxy confiável, todos compartilham a chave "direct".
  * O IP bruto nunca é armazenado: guardamos apenas um hash com sal.
+ *
+ * Com proxy confiável, o valor é lido da DIREITA para a esquerda: nginx
+ * ($proxy_add_x_forwarded_for), AWS ALB, Cloudflare e outros ACRESCENTAM o
+ * IP real ao final do que o cliente enviou, então os valores à esquerda podem
+ * ser forjados. `hops` é o número de proxies confiáveis que acrescentam
+ * valores (padrão 1). Um proxy que sobrescreve o cabeçalho deixa um único
+ * valor, que também é o mais à direita.
  */
 
-export type ClientIpOptions = { trustProxy: boolean; header: string };
+export type ClientIpOptions = { trustProxy: boolean; header: string; hops?: number };
 
 /** Valor usado quando não há proxy confiável. */
 export const DIRECT_CLIENT = "direct";
@@ -47,9 +54,12 @@ export function getClientIp(headers: Headers, options: ClientIpOptions): string 
   if (!options.trustProxy) return DIRECT_CLIENT;
   const raw = headers.get(options.header);
   if (!raw) return UNKNOWN_CLIENT;
-  // Primeiro valor da lista (o proxy confiável deve sobrescrever o cabeçalho).
-  const first = raw.split(",")[0] ?? "";
-  return parseIp(first) ?? UNKNOWN_CLIENT;
+  // Valor acrescentado pelo proxy confiável mais distante (contando da direita).
+  const entries = raw.split(",");
+  const hops = Math.max(1, Math.floor(options.hops ?? 1));
+  const entry = entries[entries.length - hops];
+  if (entry === undefined) return UNKNOWN_CLIENT;
+  return parseIp(entry) ?? UNKNOWN_CLIENT;
 }
 
 /** Expande um IPv6 válido para 8 grupos de 4 dígitos hexadecimais. */

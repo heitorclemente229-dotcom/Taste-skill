@@ -23,10 +23,12 @@ export type ConfigIssue =
   | "webhook_url_insecure"
   | "webhook_secret_invalid"
   | "turnstile_incomplete"
+  | "turnstile_invalid"
   | "turnstile_secret_rejected"
   | "site_url_invalid"
   | "allowed_origin_invalid"
   | "client_ip_header_invalid"
+  | "trust_proxy_hops_invalid"
   | "trust_proxy_disabled";
 
 export type ResendConfig = { driver: "resend"; apiKey: string; from: string; to: string };
@@ -39,13 +41,21 @@ export type DeliveryConfigResult =
 
 export type TurnstileConfig =
   | { enabled: false; issue?: ConfigIssue }
-  | { enabled: true; siteKey: string; secretKey: string };
+  | { enabled: true; siteKey: string; secretKey: string; issue?: undefined }
+  /**
+   * As duas chaves existem (então o layout mostra o widget e a CSP libera a
+   * Cloudflare), mas o formato é inválido. A API falha fechada (503) em vez
+   * de aceitar envios sem verificação.
+   */
+  | { enabled: true; siteKey: null; secretKey: null; issue: ConfigIssue };
 
 export type BookingEnv = {
   isProduction: boolean;
   /** Origens aceitas no cabeçalho Origin, já normalizadas. */
   allowedOrigins: ReadonlySet<string>;
   trustProxy: boolean;
+  /** Proxies confiáveis que acrescentam ao cabeçalho do IP (lido da direita). */
+  trustProxyHops: number;
   /** Nome do cabeçalho com o IP do cliente, em minúsculas. */
   clientIpHeader: string;
   rateLimitSalt: string;
@@ -59,6 +69,7 @@ type Env = Record<string, string | undefined>;
 
 const DEV_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"] as const;
 const DEFAULT_CLIENT_IP_HEADER = "x-forwarded-for";
+const MAX_TRUST_PROXY_HOPS = 5;
 const WEBHOOK_SECRET_MIN_LENGTH = 32;
 
 /** Sal aleatório por processo, usado quando RATE_LIMIT_SALT não é definido. */
@@ -134,12 +145,30 @@ function readClientIpHeader(env: Env, warnings: ConfigIssue[]): string {
   return value;
 }
 
+function readTrustProxyHops(env: Env, warnings: ConfigIssue[]): number {
+  const value = clean(env.TRUST_PROXY_HOPS);
+  if (!value) return 1;
+  const hops = Number(value);
+  if (!/^\d{1,2}$/.test(value) || hops < 1 || hops > MAX_TRUST_PROXY_HOPS) {
+    warnings.push("trust_proxy_hops_invalid");
+    return 1;
+  }
+  return hops;
+}
+
 function readTurnstile(env: Env): TurnstileConfig {
+  // Mesma regra de presença do layout e do proxy (valores brutos): se o widget
+  // aparece para o visitante, o servidor exige e verifica o token.
+  if (!env.TURNSTILE_SITE_KEY || !env.TURNSTILE_SECRET_KEY) {
+    const partial = clean(env.TURNSTILE_SITE_KEY) || clean(env.TURNSTILE_SECRET_KEY);
+    return partial ? { enabled: false, issue: "turnstile_incomplete" } : { enabled: false };
+  }
   const siteKey = clean(env.TURNSTILE_SITE_KEY);
   const secretKey = clean(env.TURNSTILE_SECRET_KEY);
-  if (!siteKey && !secretKey) return { enabled: false };
   const valid = (key: string) => /^[A-Za-z0-9_.-]{1,200}$/.test(key);
-  if (!valid(siteKey) || !valid(secretKey)) return { enabled: false, issue: "turnstile_incomplete" };
+  if (!valid(siteKey) || !valid(secretKey)) {
+    return { enabled: true, siteKey: null, secretKey: null, issue: "turnstile_invalid" };
+  }
   return { enabled: true, siteKey, secretKey };
 }
 
@@ -156,6 +185,12 @@ function readResend(env: Env): DeliveryConfigResult {
   return { ok: true, config: { driver: "resend", apiKey, from, to } };
 }
 
+/** Endereço de loopback (o tráfego não sai da máquina). A URL já normaliza IPv4. */
+export function isLoopbackHost(hostname: string): boolean {
+  if (hostname === "localhost" || hostname === "[::1]") return true;
+  return /^127(?:\.\d{1,3}){3}$/.test(hostname);
+}
+
 function readWebhook(env: Env, isProduction: boolean): DeliveryConfigResult {
   const raw = clean(env.BOOKING_WEBHOOK_URL);
   const secret = clean(env.BOOKING_WEBHOOK_SECRET);
@@ -168,8 +203,9 @@ function readWebhook(env: Env, isProduction: boolean): DeliveryConfigResult {
   if (url.username || url.password || (url.protocol !== "https:" && url.protocol !== "http:")) {
     return { ok: false, issue: "webhook_url_invalid", driver: "webhook" };
   }
-  // HTTP sem TLS só é aceito fora de produção (receptor local de teste).
-  if (url.protocol === "http:" && isProduction) {
+  // HTTP sem TLS só é aceito fora de produção ou em loopback (receptor local
+  // de teste ou sidecar na mesma máquina): nesses casos nada passa pela rede.
+  if (url.protocol === "http:" && isProduction && !isLoopbackHost(url.hostname)) {
     return { ok: false, issue: "webhook_url_insecure", driver: "webhook" };
   }
   if (secret.length < WEBHOOK_SECRET_MIN_LENGTH || /\s/.test(secret)) {
@@ -191,16 +227,18 @@ export function readBookingEnv(env: Env = process.env): BookingEnv {
   const warnings: ConfigIssue[] = [];
   const allowedOrigins = readAllowedOrigins(env, isProduction, warnings);
   const trustProxy = clean(env.TRUST_PROXY).toLowerCase() === "true";
+  const trustProxyHops = readTrustProxyHops(env, warnings);
   const clientIpHeader = readClientIpHeader(env, warnings);
   if (isProduction && !trustProxy) warnings.push("trust_proxy_disabled");
   const turnstile = readTurnstile(env);
-  if (!turnstile.enabled && turnstile.issue) warnings.push(turnstile.issue);
+  if (turnstile.issue) warnings.push(turnstile.issue);
   const salt = clean(env.RATE_LIMIT_SALT);
 
   return {
     isProduction,
     allowedOrigins,
     trustProxy,
+    trustProxyHops,
     clientIpHeader,
     rateLimitSalt: salt || getProcessSalt(),
     turnstile,

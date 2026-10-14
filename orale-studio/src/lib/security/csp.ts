@@ -17,11 +17,31 @@ export type CspOptions = {
   isHttps: boolean;
   /** Habilita o domínio do Cloudflare Turnstile (anti-robô opcional). */
   turnstile: boolean;
-  /** Endpoint opcional para relatórios de violação. */
+  /** Endpoint opcional para relatórios de violação (validado por `safeReportUri`). */
   reportUri?: string;
 };
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
+/**
+ * Aceita somente uma URL https absoluta (http apenas em desenvolvimento) ou um
+ * caminho do próprio site. Qualquer outro valor é ignorado: sem isso, um
+ * ";" no ambiente injetaria diretivas na política e uma quebra de linha
+ * derrubaria todas as páginas (cabeçalho inválido).
+ */
+export function safeReportUri(value: string | undefined, isDev: boolean): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw || raw.length > 512 || !/^[\x21-\x7e]+$/.test(raw) || /[;,'"]/.test(raw)) return null;
+  if (/^\/(?![/\\])/.test(raw)) return raw;
+  try {
+    const url = new URL(raw);
+    if (url.username || url.password) return null;
+    if (url.protocol === "https:" || (isDev && url.protocol === "http:")) return url.href;
+  } catch {
+    // Valor que não é URL: ignorado.
+  }
+  return null;
+}
 
 export function buildCsp({ nonce, isDev, isHttps, turnstile, reportUri }: CspOptions): string {
   const scriptSrc = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"];
@@ -55,7 +75,8 @@ export function buildCsp({ nonce, isDev, isHttps, turnstile, reportUri }: CspOpt
 
   const parts = Object.entries(directives).map(([name, values]) => `${name} ${values.join(" ")}`);
   if (isHttps && !isDev) parts.push("upgrade-insecure-requests");
-  if (reportUri) parts.push(`report-uri ${reportUri}`);
+  const report = safeReportUri(reportUri, isDev);
+  if (report) parts.push(`report-uri ${report}`);
   return parts.join("; ");
 }
 

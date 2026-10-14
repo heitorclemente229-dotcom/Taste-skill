@@ -70,6 +70,35 @@ describe("entrega", () => {
     expect(env.delivery).toEqual({ ok: false, issue, driver: "webhook" });
   });
 
+  it.each(["http://127.0.0.1:4010/hook", "http://127.8.9.10/x", "http://[::1]:4010/", "http://localhost:4010/"])(
+    "http em produção é aceito somente em loopback: %s",
+    (url) => {
+      const env = readBookingEnv({
+        NODE_ENV: "production",
+        BOOKING_DELIVERY: "webhook",
+        BOOKING_WEBHOOK_URL: url,
+        BOOKING_WEBHOOK_SECRET: SECRET,
+      });
+      expect(env.delivery.ok).toBe(true);
+    },
+  );
+
+  it.each([
+    "http://10.0.0.1/hook",
+    "http://127.0.0.1.nip.io/hook",
+    "http://localhost.evil.example/hook",
+    "http://[::ffff:10.0.0.1]/hook",
+    "http://0.0.0.0/hook",
+  ])("http em produção fora de loopback é recusado: %s", (url) => {
+    const env = readBookingEnv({
+      NODE_ENV: "production",
+      BOOKING_DELIVERY: "webhook",
+      BOOKING_WEBHOOK_URL: url,
+      BOOKING_WEBHOOK_SECRET: SECRET,
+    });
+    expect(env.delivery).toEqual({ ok: false, issue: "webhook_url_insecure", driver: "webhook" });
+  });
+
   it("http é aceito fora de produção (receptor local)", () => {
     const env = readBookingEnv({ BOOKING_DELIVERY: "webhook", BOOKING_WEBHOOK_URL: "http://127.0.0.1:4010/", BOOKING_WEBHOOK_SECRET: SECRET });
     expect(env.delivery.ok).toBe(true);
@@ -90,6 +119,20 @@ describe("Turnstile", () => {
     });
   });
 
+  it("chaves presentes mas malformadas: exige verificação e falha fechada", () => {
+    // O layout e a CSP só olham a presença: o widget aparece, então o servidor não pode ignorá-lo.
+    for (const [site, secret] of [
+      ["0x4AAA chave com espaço", "0x4BBB"],
+      ["0x4AAA", "segredo\"com aspas"],
+      ["   ", "0x4BBB"],
+    ]) {
+      const env = readBookingEnv({ TURNSTILE_SITE_KEY: site, TURNSTILE_SECRET_KEY: secret });
+      expect(env.turnstile).toEqual({ enabled: true, siteKey: null, secretKey: null, issue: "turnstile_invalid" });
+      expect(env.warnings).toContain("turnstile_invalid");
+      expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: site, TURNSTILE_SECRET_KEY: secret })).toBeNull();
+    }
+  });
+
   it("expõe só a chave pública para o widget", () => {
     expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: "pub" })).toBeNull();
     expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: "pub", TURNSTILE_SECRET_KEY: "sec" })).toBe("pub");
@@ -108,6 +151,16 @@ describe("proxy e limite", () => {
     const invalid = readBookingEnv({ CLIENT_IP_HEADER: "x: y" });
     expect(invalid.clientIpHeader).toBe("x-forwarded-for");
     expect(invalid.warnings).toContain("client_ip_header_invalid");
+  });
+
+  it("TRUST_PROXY_HOPS tem padrão 1 e é validado", () => {
+    expect(readBookingEnv({}).trustProxyHops).toBe(1);
+    expect(readBookingEnv({ TRUST_PROXY_HOPS: "2" }).trustProxyHops).toBe(2);
+    for (const value of ["0", "6", "-1", "1.5", "abc", "99"]) {
+      const env = readBookingEnv({ TRUST_PROXY_HOPS: value });
+      expect(env.trustProxyHops).toBe(1);
+      expect(env.warnings).toContain("trust_proxy_hops_invalid");
+    }
   });
 
   it("usa RATE_LIMIT_SALT ou um sal aleatório estável por processo", () => {

@@ -58,4 +58,23 @@ describe("verifyTurnstile", () => {
       reason: "timeout",
     });
   });
+
+  it("em produção recusa token resolvido em outro domínio", async () => {
+    const expectedHostnames = new Set(["www.orale.example", "orale.example"]);
+    const verify = (hostname?: string) =>
+      verifyTurnstile("tok", "sec", {
+        fetch: fetchReturning(json({ success: true, ...(hostname === undefined ? {} : { hostname }) })) as unknown as typeof fetch,
+        expectedHostnames,
+      });
+    expect(await verify("evil.example")).toEqual({ status: "failed", upstreamStatus: 200, reason: "hostname_mismatch" });
+    expect(await verify("WWW.Orale.example")).toEqual({ status: "ok", upstreamStatus: 200 });
+    expect(await verify(undefined)).toEqual({ status: "ok", upstreamStatus: 200 });
+  });
+
+  it("sem expectedHostnames não confere o domínio (desenvolvimento e testes)", async () => {
+    const result = await verifyTurnstile("tok", "sec", {
+      fetch: fetchReturning(json({ success: true, hostname: "example.com" })) as unknown as typeof fetch,
+    });
+    expect(result).toEqual({ status: "ok", upstreamStatus: 200 });
+  });
 });

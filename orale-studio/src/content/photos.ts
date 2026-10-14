@@ -32,20 +32,20 @@ export type Photo = {
 };
 
 export const photos = {
-  heroSmile: { src: heroSmile, alt: "", position: "50% 40%" },
-  heroDetail: { src: heroDetail, alt: "", position: "50% 50%" },
-  orthodontics: { src: orthodontics, alt: "", position: "50% 50%" },
-  whitening: { src: whitening, alt: "", position: "50% 50%" },
-  implants: { src: implants, alt: "", position: "50% 50%" },
-  aesthetics: { src: aesthetics, alt: "", position: "50% 50%" },
-  prevention: { src: prevention, alt: "", position: "50% 50%" },
-  restorative: { src: restorative, alt: "", position: "50% 50%" },
-  interior: { src: interior, alt: "", position: "50% 50%" },
-  detail: { src: detail, alt: "", position: "50% 50%" },
-  care: { src: care, alt: "", position: "50% 50%" },
-  team1: { src: team1, alt: "", position: "50% 30%" },
-  team2: { src: team2, alt: "", position: "50% 30%" },
-  team3: { src: team3, alt: "", position: "50% 30%" },
+  heroSmile: { src: heroSmile, alt: "Mulher de cabelos castanhos sorrindo para a câmera, de blazer branco, diante de um fundo cinza-claro.", position: "50% 15%" },
+  heroDetail: { src: heroDetail, alt: "Espelho clínico em primeiro plano, com a cadeira e o refletor do consultório desfocados ao fundo.", position: "50% 50%" },
+  orthodontics: { src: orthodontics, alt: "Alinhador ortodôntico transparente sobre uma superfície branca.", position: "50% 55%" },
+  whitening: { src: whitening, alt: "Detalhe de um sorriso de perfil, com dentes brancos e lábios rosados, sobre fundo branco.", position: "90% 50%" },
+  implants: { src: implants, alt: "Mão com luva segurando um modelo de implante dentário com coroa, com o consultório desfocado ao fundo.", position: "50% 35%" },
+  aesthetics: { src: aesthetics, alt: "Mulher de cabelos castanhos olhando para baixo, com um sorriso largo de dentes claros e alinhados.", position: "50% 18%" },
+  prevention: { src: prevention, alt: "Escova de dentes de cabo verde-escuro e cerdas brancas sobre uma superfície cinza-clara.", position: "92% 50%" },
+  restorative: { src: restorative, alt: "Dentista de touca, máscara e lupas de aumento atende um paciente sob a luz do refletor.", position: "50% 30%" },
+  interior: { src: interior, alt: "Consultório claro com cadeira odontológica branca e cinza, refletor e janela ao fundo.", position: "50% 70%" },
+  detail: { src: detail, alt: "Mão com luva azul sobre instrumentos odontológicos de aço alinhados em uma superfície branca.", position: "50% 42%" },
+  care: { src: care, alt: "Dentista de camisa branca mostra um modelo dental a uma paciente sentada na cadeira odontológica.", position: "50% 50%" },
+  team1: { src: team1, alt: "Foto ilustrativa: mulher de cabelos escuros ondulados, sorrindo, de jaleco branco e braços cruzados, diante de fundo claro.", position: "50% 30%" },
+  team2: { src: team2, alt: "Foto ilustrativa: homem de barba, sorrindo, de jaleco branco e mãos unidas à frente do corpo, diante de fundo claro.", position: "50% 30%" },
+  team3: { src: team3, alt: "Foto ilustrativa: mulher de cabelos escuros longos e lisos, de jaleco branco e braços cruzados, diante de fundo claro.", position: "50% 30%" },
 } satisfies Record<string, Photo>;
 
 export type PhotoKey = keyof typeof photos;

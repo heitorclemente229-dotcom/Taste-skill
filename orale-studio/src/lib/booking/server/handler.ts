@@ -41,6 +41,13 @@ export type HandlerOptions = {
 
 const INVALID_REQUEST: BookingApiResponse = { ok: false, code: "invalid_request" };
 
+/** Hostnames (em minúsculas) das origens aceitas, para conferir o Turnstile. */
+function hostnamesOf(origins: ReadonlySet<string>): Set<string> {
+  const hostnames = new Set<string>();
+  for (const origin of origins) hostnames.add(new URL(origin).hostname.toLowerCase());
+  return hostnames;
+}
+
 export async function handleBookingRequest(request: Request, options: HandlerOptions = {}): Promise<Response> {
   const started = performance.now();
   const requestId = randomUUID();
@@ -77,7 +84,11 @@ export async function handleBookingRequest(request: Request, options: HandlerOpt
     if (!body.ok) return finish(body.status, INVALID_REQUEST, { reason: body.reason });
 
     // 4. Limite por cliente, antes de qualquer trabalho caro.
-    const clientIp = getClientIp(request.headers, { trustProxy: env.trustProxy, header: env.clientIpHeader });
+    const clientIp = getClientIp(request.headers, {
+      trustProxy: env.trustProxy,
+      header: env.clientIpHeader,
+      hops: env.trustProxyHops,
+    });
     const client = await consumeClient(deriveClientKey(clientIp, env.rateLimitSalt), clock());
     if (!client.allowed) return rateLimited(client.retryAfterMs, "client_limit");
 
@@ -105,16 +116,24 @@ export async function handleBookingRequest(request: Request, options: HandlerOpt
     }
     const delivery = env.delivery.config;
 
-    // 8. Turnstile, quando ativo.
+    // 8. Turnstile, quando ativo. Chaves presentes mas inválidas: falha fechada.
     if (env.turnstile.enabled) {
+      if (env.turnstile.secretKey === null) {
+        return finish(503, { ok: false, code: "unavailable" }, { reason: "misconfigured", issue: env.turnstile.issue });
+      }
       const token = data.turnstileToken?.trim();
       if (!token) return finish(400, { ok: false, code: "verification_failed" }, { reason: "token_missing" });
       const result = await verifyTurnstile(token, env.turnstile.secretKey, {
         fetch: fetchImpl,
         timeoutMs: options.timeouts?.turnstileMs,
+        expectedHostnames: env.isProduction ? hostnamesOf(env.allowedOrigins) : undefined,
       });
       if (result.status === "failed") {
-        return finish(400, { ok: false, code: "verification_failed" }, { reason: "token_rejected", upstreamStatus: result.upstreamStatus });
+        return finish(
+          400,
+          { ok: false, code: "verification_failed" },
+          { reason: result.reason ?? "token_rejected", upstreamStatus: result.upstreamStatus },
+        );
       }
       if (result.status === "misconfigured") {
         warnOnce("turnstile_secret_rejected");

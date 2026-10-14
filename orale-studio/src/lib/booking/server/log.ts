@@ -34,6 +34,7 @@ export type LogReason =
   | "fields"
   | "token_missing"
   | "token_rejected"
+  | "hostname_mismatch"
   | "misconfigured"
   | "timeout"
   | "network"
