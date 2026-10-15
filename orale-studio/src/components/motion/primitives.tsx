@@ -11,7 +11,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useEffect, useRef, useState, type ElementType, type ReactNode, type RefObject } from "react";
+import { Fragment, useEffect, useRef, useState, type ElementType, type ReactNode, type RefObject } from "react";
 import { cn } from "@/lib/cn";
 import { smilePolygon } from "@/lib/smile";
 
@@ -85,7 +85,9 @@ type MaskLinesProps = {
 
 /**
  * Máscara tipográfica: cada linha sobe de trás de uma linha de base invisível.
- * O texto continua sendo texto real (acessível e indexável).
+ * O texto continua sendo texto real (acessível e indexável). Entre as linhas
+ * vai um espaço real: sem ele o textContent e o nome acessível juntam as
+ * palavras ("Clareamentodental"). Entre blocos o espaço não aparece na tela.
  */
 export function MaskLines({ lines, as: Tag = "h2", className, lineClassNames = [], delay = 0, stagger = 0.09, mount = false, id }: MaskLinesProps) {
   const ref = useRef<HTMLElement>(null);
@@ -95,17 +97,20 @@ export function MaskLines({ lines, as: Tag = "h2", className, lineClassNames = [
   return (
     <Tag ref={ref} id={id} className={className}>
       {lines.map((line, index) => (
-        <span key={index} className="block overflow-hidden pb-[0.12em] -mb-[0.12em]">
-          <motion.span
-            data-reveal=""
-            className={cn("block will-change-transform", lineClassNames[index])}
-            initial={{ y: "110%" }}
-            animate={shown ? { y: "0%" } : { y: "110%" }}
-            transition={reduce ? { duration: 0 } : { duration: 1.15, delay: delay + index * stagger, ease: EASE_OUT }}
-          >
-            {line}
-          </motion.span>
-        </span>
+        <Fragment key={index}>
+          {index > 0 ? " " : null}
+          <span className="block overflow-hidden pb-[0.12em] -mb-[0.12em]">
+            <motion.span
+              data-reveal=""
+              className={cn("block will-change-transform", lineClassNames[index])}
+              initial={{ y: "110%" }}
+              animate={shown ? { y: "0%" } : { y: "110%" }}
+              transition={reduce ? { duration: 0 } : { duration: 1.15, delay: delay + index * stagger, ease: EASE_OUT }}
+            >
+              {line}
+            </motion.span>
+          </span>
+        </Fragment>
       ))}
     </Tag>
   );

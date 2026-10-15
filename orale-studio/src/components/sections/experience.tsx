@@ -94,8 +94,9 @@ export function Experience() {
                 }}
                 data-index={index}
                 className={cn(
-                  "w-[78%] shrink-0 snap-center sm:w-[56%] lg:w-full",
-                  index === 1 ? "lg:ml-[14%] lg:w-[86%]" : "",
+                  "w-[78%] shrink-0 snap-center sm:w-[56%]",
+                  // Larguras exclusivas: com lg:w-full junto, a segunda foto ficava com 100% + 14% e vazava da coluna.
+                  index === 1 ? "lg:ml-[14%] lg:w-[86%]" : "lg:w-full",
                 )}
               >
                 <Parallax offset={index === 1 ? 50 : 30}>

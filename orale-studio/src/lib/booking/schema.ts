@@ -1,5 +1,10 @@
 import * as z from "zod";
 
+// Sem compilação JIT: para decidir se compila os esquemas, o zod testa
+// Function(""), e a CSP (sem 'unsafe-eval') registra uma violação mesmo com o
+// erro capturado. Precisa rodar antes de criar qualquer esquema.
+z.config({ jitless: true });
+
 /**
  * Contrato da solicitação de agendamento.
  *

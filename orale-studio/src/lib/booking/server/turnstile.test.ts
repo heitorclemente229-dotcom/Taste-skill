@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { SITEVERIFY_URL, verifyTurnstile } from "./turnstile";
 
 function fetchReturning(response: Response | (() => never)) {
-  return vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-    typeof response === "function" ? response() : response,
-  );
+  // Tipado como fetch para que mock.calls traga [url, init].
+  return vi.fn<typeof fetch>(async () => (typeof response === "function" ? response() : response));
 }
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
