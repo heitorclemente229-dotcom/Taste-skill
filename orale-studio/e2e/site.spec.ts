@@ -140,6 +140,31 @@ test("com movimento reduzido o conteúdo aparece sem depender de animação", as
   await context.close();
 });
 
+test("as fotografias das seções aparecem ao rolar a página", async ({ page }) => {
+  // Regressão: com o recorte fechado (área zero) no próprio elemento, o
+  // IntersectionObserver do Chromium nunca disparava a abertura das fotos.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await scrollThrough(page);
+  const photos = () =>
+    page.evaluate(() => {
+      // Só as fotos inteiras na largura da tela (nos carrosséis do celular, as seguintes abrem ao deslizar).
+      const wrappers = [...document.querySelectorAll("#tratamentos img, #clinica img, #equipe img")]
+        .map((image) => image.closest("[data-reveal]"))
+        .filter((element): element is Element => {
+          const rect = element?.getBoundingClientRect();
+          return Boolean(rect && rect.left >= 0 && rect.right <= window.innerWidth);
+        });
+      const hidden = wrappers.filter((element) => {
+        const style = getComputedStyle(element);
+        return style.opacity !== "1" || style.clipPath.startsWith("polygon(0% 50%, 100% 50%");
+      });
+      return { total: wrappers.length, hidden: hidden.map((element) => element.closest("section")?.id ?? "?") };
+    });
+  await expect.poll(async () => (await photos()).hidden).toEqual([]);
+  expect((await photos()).total).toBeGreaterThanOrEqual(3);
+});
+
 test("robots, sitemap e manifesto respondem", async ({ request }) => {
   const robots = await request.get("/robots.txt");
   expect(robots.status()).toBe(200);

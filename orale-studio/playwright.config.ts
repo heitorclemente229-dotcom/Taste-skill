@@ -12,7 +12,9 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const WEBHOOK_PORT = Number(process.env.E2E_WEBHOOK_PORT ?? 4010);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SECRET = "e2e-segredo-apenas-para-teste";
+// O site exige pelo menos 32 caracteres (src/lib/booking/server/env.ts); com
+// menos, a API responde 503 sem chamar o receptor.
+const SECRET = "e2e-segredo-apenas-para-teste-local-0001";
 
 export default defineConfig({
   testDir: "./e2e",

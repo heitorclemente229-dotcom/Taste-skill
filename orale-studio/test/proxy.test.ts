@@ -31,6 +31,9 @@ describe("CSP por requisição", () => {
   it("libera a Cloudflare somente com as duas chaves do Turnstile", () => {
     useProxyEnv({ TURNSTILE_SITE_KEY: "0x4AAA" });
     expect(proxy(request("https://www.orale.example/")).headers.get("content-security-policy")).not.toContain("cloudflare");
+    // Chave só com espaços conta como ausente, como no servidor.
+    useProxyEnv({ TURNSTILE_SITE_KEY: "0x4AAA", TURNSTILE_SECRET_KEY: "   " });
+    expect(proxy(request("https://www.orale.example/")).headers.get("content-security-policy")).not.toContain("cloudflare");
     useProxyEnv({ TURNSTILE_SITE_KEY: "0x4AAA", TURNSTILE_SECRET_KEY: "0x4BBB" });
     expect(proxy(request("https://www.orale.example/")).headers.get("content-security-policy")).toContain(
       "frame-src https://challenges.cloudflare.com",

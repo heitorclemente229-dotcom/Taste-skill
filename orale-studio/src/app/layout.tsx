@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 import { brand, siteUrl } from "@/config/site";
+import { getTurnstileSiteKey } from "@/lib/booking/server/env";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -60,8 +61,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Nonce gerado por requisição em src/proxy.ts (CSP). Ler os cabeçalhos
   // torna a renderização dinâmica, requisito para nonces.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  const turnstileSiteKey =
-    process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY ? process.env.TURNSTILE_SITE_KEY : undefined;
+  // Mesma regra do servidor: o widget só aparece quando a API exige o token.
+  const turnstileSiteKey = getTurnstileSiteKey() ?? undefined;
 
   return (
     <html lang="pt-BR" data-scroll-behavior="smooth" className={`${manrope.variable} ${cormorant.variable}`}>

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp, createNonce } from "@/lib/security/csp";
+import { isTurnstileConfigured } from "@/lib/booking/turnstile-config";
 
 /**
  * Executado antes de cada página:
@@ -28,7 +29,8 @@ export function proxy(request: NextRequest) {
     nonce,
     isDev,
     isHttps,
-    turnstile: Boolean(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY),
+    // Mesma regra de presença do servidor (src/lib/booking/server/env.ts).
+    turnstile: isTurnstileConfigured(),
     reportUri: process.env.CSP_REPORT_URI || undefined,
   });
 

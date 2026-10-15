@@ -65,8 +65,9 @@ test("validação: campos obrigatórios, telefone e e-mail condicional", async (
   await dialog.getByRole("button", { name: "Enviar solicitação" }).click();
   await expect(dialog.getByText("Informe um e-mail para receber o retorno por e-mail.")).toBeVisible();
 
-  await dialog.getByLabel(/^E-mail/).fill("ana@exemplo");
-  await dialog.getByLabel(/^E-mail/).blur();
+  // "E-mail" também é uma opção de retorno (rádio): o campo é o textbox.
+  await dialog.getByRole("textbox", { name: /^E-mail/ }).fill("ana@exemplo");
+  await dialog.getByRole("textbox", { name: /^E-mail/ }).blur();
   await expect(dialog.getByText("Informe um e-mail válido.")).toBeVisible();
 });
 
@@ -82,7 +83,8 @@ test("envio real: o servidor entrega ao webhook e só então confirma", async ({
   const payload = JSON.parse(await readFile(DUMP, "utf8"));
   expect(payload.data).toMatchObject({
     name: "Ana Teste",
-    phone: "11912345678",
+    // O payload do webhook leva o telefone em E.164 (src/lib/booking/server/webhook.ts).
+    phone: "+5511912345678",
     contactPreference: "whatsapp",
     period: "tarde",
     topic: "clareamento",

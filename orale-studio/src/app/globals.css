@@ -18,8 +18,8 @@
   --color-periwinkle-soft: #a9b8f5;
   /* Pervinca para títulos grandes (3,4:1 sobre porcelana). */
   --color-accent-display: #6a80ea;
-  /* Pervinca para texto e foco (4,7:1 sobre porcelana). */
-  --color-accent-ink: #5468d0;
+  /* Pervinca para texto e foco (4,6:1 sobre gelo, 5,1:1 sobre porcelana). */
+  --color-accent-ink: #4f62c9;
   --color-deep: #152b3a;
   --color-deep-soft: #1d384b;
   --color-mineral: #a8b0ba;

@@ -1,5 +1,6 @@
 import "server-only";
 import * as z from "zod";
+import { isTurnstileConfigured } from "@/lib/booking/turnstile-config";
 
 /**
  * Configuração do backend de agendamento, lida das variáveis de ambiente.
@@ -43,9 +44,9 @@ export type TurnstileConfig =
   | { enabled: false; issue?: ConfigIssue }
   | { enabled: true; siteKey: string; secretKey: string; issue?: undefined }
   /**
-   * As duas chaves existem (então o layout mostra o widget e a CSP libera a
-   * Cloudflare), mas o formato é inválido. A API falha fechada (503) em vez
-   * de aceitar envios sem verificação.
+   * As duas chaves existem (então a CSP libera a Cloudflare), mas o formato é
+   * inválido. O widget não aparece e a API falha fechada (503) em vez de
+   * aceitar envios sem verificação.
    */
   | { enabled: true; siteKey: null; secretKey: null; issue: ConfigIssue };
 
@@ -157,9 +158,9 @@ function readTrustProxyHops(env: Env, warnings: ConfigIssue[]): number {
 }
 
 function readTurnstile(env: Env): TurnstileConfig {
-  // Mesma regra de presença do layout e do proxy (valores brutos): se o widget
-  // aparece para o visitante, o servidor exige e verifica o token.
-  if (!env.TURNSTILE_SITE_KEY || !env.TURNSTILE_SECRET_KEY) {
+  // Mesma regra de presença do proxy e das páginas (isTurnstileConfigured):
+  // se a CSP libera a Cloudflare, o servidor exige e verifica o token.
+  if (!isTurnstileConfigured(env)) {
     const partial = clean(env.TURNSTILE_SITE_KEY) || clean(env.TURNSTILE_SECRET_KEY);
     return partial ? { enabled: false, issue: "turnstile_incomplete" } : { enabled: false };
   }
@@ -248,9 +249,9 @@ export function readBookingEnv(env: Env = process.env): BookingEnv {
 }
 
 /**
- * Chave pública do Turnstile para o widget, ou null quando o Turnstile está
- * desativado. Use em um Server Component e passe o valor como prop para
- * `<TurnstileWidget siteKey={...} />`.
+ * Chave pública do Turnstile para o widget (sem espaços nas pontas), ou null
+ * quando o Turnstile está desativado ou com chaves malformadas (nesse caso a
+ * API responde 503). Use em um Server Component e passe o valor como prop.
  */
 export function getTurnstileSiteKey(env: Env = process.env): string | null {
   const turnstile = readTurnstile(env);

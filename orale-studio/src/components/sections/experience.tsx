@@ -62,13 +62,17 @@ export function Experience() {
                       animate={{ scaleX: isActive ? 1 : 0 }}
                       transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE_OUT }}
                     />
-                    <div
-                      className={cn(
-                        "grid grid-cols-[7.5rem_1fr] gap-6 transition-opacity duration-500 sm:grid-cols-[9rem_1fr]",
-                        isActive ? "lg:opacity-100" : "lg:opacity-45",
-                      )}
-                    >
-                      <h3 className="text-[1.15rem] font-medium tracking-[-0.01em]">{item.title}</h3>
+                    <div className="grid grid-cols-[7.5rem_1fr] gap-6 sm:grid-cols-[9rem_1fr]">
+                      {/* Fora de foco o título recua para slate (5,1:1 sobre gelo). Opacidade
+                          baixaria título e texto para menos de 4,5:1. */}
+                      <h3
+                        className={cn(
+                          "text-[1.15rem] font-medium tracking-[-0.01em] transition-colors duration-500",
+                          isActive ? "" : "lg:text-slate",
+                        )}
+                      >
+                        {item.title}
+                      </h3>
                       <p className="leading-relaxed text-slate">{item.text}</p>
                     </div>
                   </li>

@@ -120,11 +120,10 @@ describe("Turnstile", () => {
   });
 
   it("chaves presentes mas malformadas: exige verificação e falha fechada", () => {
-    // O layout e a CSP só olham a presença: o widget aparece, então o servidor não pode ignorá-lo.
+    // A CSP só olha a presença e libera a Cloudflare, então o servidor não pode ignorar a verificação.
     for (const [site, secret] of [
       ["0x4AAA chave com espaço", "0x4BBB"],
       ["0x4AAA", "segredo\"com aspas"],
-      ["   ", "0x4BBB"],
     ]) {
       const env = readBookingEnv({ TURNSTILE_SITE_KEY: site, TURNSTILE_SECRET_KEY: secret });
       expect(env.turnstile).toEqual({ enabled: true, siteKey: null, secretKey: null, issue: "turnstile_invalid" });
@@ -133,9 +132,19 @@ describe("Turnstile", () => {
     }
   });
 
-  it("expõe só a chave pública para o widget", () => {
+  it("chave só com espaços conta como ausente (mesma regra do proxy e das páginas)", () => {
+    expect(readBookingEnv({ TURNSTILE_SITE_KEY: "   ", TURNSTILE_SECRET_KEY: "0x4BBB" }).turnstile).toEqual({
+      enabled: false,
+      issue: "turnstile_incomplete",
+    });
+    expect(readBookingEnv({ TURNSTILE_SITE_KEY: " \t", TURNSTILE_SECRET_KEY: "\n" }).turnstile).toEqual({ enabled: false });
+    expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: "pub", TURNSTILE_SECRET_KEY: "   " })).toBeNull();
+  });
+
+  it("expõe só a chave pública para o widget, sem espaços nas pontas", () => {
     expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: "pub" })).toBeNull();
     expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: "pub", TURNSTILE_SECRET_KEY: "sec" })).toBe("pub");
+    expect(getTurnstileSiteKey({ TURNSTILE_SITE_KEY: " pub\n", TURNSTILE_SECRET_KEY: " sec " })).toBe("pub");
   });
 });
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { contact, formatAddress, legal } from "@/config/site";
+import { getTurnstileSiteKey } from "@/lib/booking/server/env";
 import { MaskLines, Reveal } from "@/components/motion/primitives";
 import { DemoNote } from "@/components/ui/demo-note";
 
@@ -27,8 +28,8 @@ const notice = {
 type Section = { id: string; title: string; body: ReactNode };
 
 export default function PrivacidadePage() {
-  // Mesma regra do layout: a verificação anti-robô só existe com as duas chaves.
-  const turnstileEnabled = Boolean(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY);
+  // Mesma regra do servidor e do layout: a verificação anti-robô só existe quando o widget aparece.
+  const turnstileEnabled = getTurnstileSiteKey() !== null;
 
   const sections: Section[] = [
     {

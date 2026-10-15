@@ -148,20 +148,26 @@ export function SmileReveal({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount });
   const reduce = useReduced();
-  const progress = useMotionValue(0);
+  // -1 = aguardando entrar na tela: oculto por opacidade, sem recorte. O
+  // IntersectionObserver do Chromium aplica o clip-path do próprio alvo, e com
+  // o recorte fechado (área zero) a fração visível nunca chegaria a `amount`.
+  const progress = useMotionValue(mount ? 0 : -1);
   const clipPath = useTransform(progress, (value) =>
-    smilePolygon(value, shape === "smile" ? depth : depth * 1.4 * Math.sin(Math.PI * value)),
+    value < 0 ? "none" : smilePolygon(value, shape === "smile" ? depth : depth * 1.4 * Math.sin(Math.PI * value)),
   );
+  const opacity = useTransform(progress, (value) => (value < 0 ? 0 : 1));
   const shown = mount || inView;
 
   useEffect(() => {
     if (!shown) return;
+    // Começa da linha fechada (invisível), como no primeiro quadro da abertura.
+    if (progress.get() < 0) progress.set(0);
     const controls = animate(progress, 1, reduce ? { duration: 0 } : { duration, delay, ease: EASE_SMILE });
     return () => controls.stop();
   }, [shown, reduce, duration, delay, progress]);
 
   return (
-    <motion.div ref={ref} data-reveal="" className={cn("relative overflow-hidden", className)} style={{ clipPath }}>
+    <motion.div ref={ref} data-reveal="" className={cn("relative overflow-hidden", className)} style={{ clipPath, opacity }}>
       {children}
       {sweep ? (
         <motion.span

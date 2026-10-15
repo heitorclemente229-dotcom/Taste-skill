@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { contact } from "@/config/site";
+import { getTurnstileSiteKey } from "@/lib/booking/server/env";
 import { BookingForm } from "@/components/booking/booking-form";
 import { Halo, MaskLines, Reveal } from "@/components/motion/primitives";
 import { DemoNote } from "@/components/ui/demo-note";
@@ -18,9 +19,8 @@ export const metadata: Metadata = {
  * diálogo não abre (sem JavaScript, nova aba ou link direto).
  */
 export default function AgendarPage() {
-  // Mesma regra do layout: o Turnstile só liga com as duas chaves definidas.
-  const turnstileSiteKey =
-    process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY ? process.env.TURNSTILE_SITE_KEY : undefined;
+  // Mesma regra do servidor (e do layout): o widget só aparece quando a API exige o token.
+  const turnstileSiteKey = getTurnstileSiteKey() ?? undefined;
 
   return (
     <section aria-labelledby="agendar-title" className="relative isolate overflow-hidden pt-[var(--header-h)]">
