@@ -14,6 +14,12 @@ const sizes: Record<ButtonSize, string> = {
   sm: "h-11 pl-5 pr-1.5 text-sm",
 };
 
+// Sem o círculo do ícone, o rótulo fica centralizado com respiro simétrico.
+const iconlessSizes: Record<ButtonSize, string> = {
+  md: "h-14 px-7 text-[0.95rem]",
+  sm: "h-11 px-5 text-sm",
+};
+
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-deep text-white shadow-[0_14px_32px_-16px_rgb(21_43_58/0.55)] hover:bg-deep-soft",
   light: "bg-white text-deep shadow-[0_14px_32px_-18px_rgb(0_0_0/0.45)] hover:bg-ice",
@@ -31,8 +37,8 @@ const iconSizes: Record<ButtonSize, string> = {
   sm: "size-8",
 };
 
-export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md", className?: string) {
-  return cn(base, sizes[size], variants[variant], className);
+export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md", className?: string, iconless = false) {
+  return cn(base, iconless ? iconlessSizes[size] : sizes[size], variants[variant], className);
 }
 
 /** Conteúdo padrão de um botão: rótulo + círculo com seta que gira no hover. */
@@ -82,7 +88,7 @@ type ButtonLinkProps = Omit<ComponentProps<typeof Link>, "className"> & {
 
 export function ButtonLink({ variant = "primary", size = "md", icon, className, children, ...props }: ButtonLinkProps) {
   return (
-    <Link {...props} className={buttonClasses(variant, size, className)}>
+    <Link {...props} className={buttonClasses(variant, size, className, icon === "none")}>
       <ButtonContent variant={variant} size={size} icon={icon}>
         {children}
       </ButtonContent>
@@ -98,7 +104,7 @@ type ButtonProps = ComponentProps<"button"> & {
 
 export function Button({ variant = "primary", size = "md", icon, className, children, type = "button", ...props }: ButtonProps) {
   return (
-    <button type={type} {...props} className={buttonClasses(variant, size, className)}>
+    <button type={type} {...props} className={buttonClasses(variant, size, className, icon === "none")}>
       <ButtonContent variant={variant} size={size} icon={icon}>
         {children}
       </ButtonContent>

@@ -47,6 +47,13 @@ type Status =
   | { kind: "success"; firstName: string; channel: ContactPreference }
   | { kind: "error"; code: Exclude<BookingApiResponse, { ok: true }>["code"] | "network"; retryAfter?: number };
 
+/** Como a equipe vai retornar, já na forma da frase ("pelo WhatsApp", "por e-mail"). */
+const RETURN_CHANNEL: Record<ContactPreference, string> = {
+  whatsapp: "pelo WhatsApp",
+  ligacao: "por telefone",
+  email: "por e-mail",
+};
+
 const INITIAL: FormValues = {
   name: "",
   phone: "",
@@ -211,8 +218,8 @@ export function BookingForm({
           Solicitação enviada{status.firstName ? `, ${status.firstName}` : ""}.
         </h3>
         <p className="max-w-[40ch] leading-relaxed text-slate">
-          Nossa equipe vai entrar em contato por {CONTACT_PREFERENCE_LABELS[status.channel].toLowerCase()} para confirmar
-          data e horário. Este envio ainda não reserva um horário.
+          Nossa equipe vai entrar em contato {RETURN_CHANNEL[status.channel]} para confirmar data e horário. Este envio
+          ainda não reserva um horário.
         </p>
         {context === "dialog" ? (
           <Button variant="outline" icon="none" onClick={onDismiss}>

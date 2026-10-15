@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 import { brand, siteUrl } from "@/config/site";
 import { getTurnstileSiteKey } from "@/lib/booking/server/env";
@@ -11,17 +11,20 @@ import { Footer } from "@/components/layout/footer";
 // As fontes são baixadas no build e servidas pelo próprio site (sem requisições
 // ao Google em tempo de execução, o que simplifica a CSP e a privacidade).
 const manrope = Manrope({
-  subsets: ["latin", "latin-ext"],
+  // O subconjunto latin já cobre todos os acentos do português.
+  subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["300", "400"],
+// Serifa editorial, usada só em detalhes (manifesto, depoimentos, numerais).
+// Acentos bem ancorados em pesos leves; não é pré-carregada por não ser crítica.
+const newsreader = Newsreader({
+  subsets: ["latin"],
   style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-newsreader",
   display: "swap",
+  preload: false,
 });
 
 export function generateMetadata(): Metadata {
@@ -65,7 +68,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const turnstileSiteKey = getTurnstileSiteKey() ?? undefined;
 
   return (
-    <html lang="pt-BR" data-scroll-behavior="smooth" className={`${manrope.variable} ${cormorant.variable}`}>
+    <html lang="pt-BR" data-scroll-behavior="smooth" className={`${manrope.variable} ${newsreader.variable}`}>
       <body>
         {/* Sem JavaScript, os elementos animados aparecem no estado final. */}
         <noscript>

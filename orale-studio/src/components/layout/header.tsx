@@ -97,7 +97,10 @@ export function Header() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? { duration: 0 } : { duration: 0.9, delay: 0.35, ease: EASE_OUT }}
         >
-          <BookingTrigger size="sm" className="hidden sm:inline-flex" />
+          {/* O wrapper controla a exibição: o botão já traz inline-flex e o cn() não resolve conflitos. */}
+          <span className="hidden sm:inline-flex">
+            <BookingTrigger size="sm" />
+          </span>
           <button
             type="button"
             onClick={() => setMenuOpen(true)}

@@ -6,10 +6,13 @@ import { Team } from "@/components/sections/team";
 import { Process } from "@/components/sections/process";
 import { Testimonials } from "@/components/sections/testimonials";
 import { FinalCta } from "@/components/sections/final-cta";
+import { DentistJsonLd } from "@/components/seo/json-ld";
 
 export default function HomePage() {
   return (
     <>
+      {/* Dados estruturados da clínica; não renderiza nada enquanto os dados forem placeholders. */}
+      <DentistJsonLd />
       <Hero />
       <Manifesto />
       <Treatments />

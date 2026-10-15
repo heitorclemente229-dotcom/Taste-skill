@@ -35,15 +35,15 @@ export function Hero() {
             mount
             delay={0.25}
             lines={hero.titleLines}
-            className="text-[12.4vw] font-light leading-[0.94] tracking-[-0.055em] text-deep sm:text-[11vw] lg:text-[min(7.6vw,7rem)]"
-            lineClassNames={[undefined, "pl-[0.9em] text-accent-display lg:pl-[1.15em]"]}
+            className="text-[12.4vw] font-light leading-[0.94] tracking-[-0.055em] text-deep sm:text-[11vw] lg:text-[min(7.2vw,6.75rem)]"
+            lineClassNames={[undefined, "pl-[0.9em] text-accent-display lg:pl-[1em]"]}
           />
 
-          <Reveal mount delay={0.9} className="mt-9 max-w-[30ch] text-lead text-slate sm:mt-11 lg:ml-[0.4rem]">
+          <Reveal mount delay={0.5} className="mt-9 max-w-[30ch] text-lead text-slate sm:mt-11 lg:ml-[0.4rem]">
             <p>{hero.lead}</p>
           </Reveal>
 
-          <Reveal mount delay={1.05} className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4 lg:ml-[0.4rem]">
+          <Reveal mount delay={0.65} className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4 lg:ml-[0.4rem]">
             <BookingTrigger />
             <ArrowLink href={hero.secondary.href}>{hero.secondary.label}</ArrowLink>
           </Reveal>

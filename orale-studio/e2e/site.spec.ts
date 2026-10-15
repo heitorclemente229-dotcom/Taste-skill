@@ -89,6 +89,19 @@ test("menu móvel abre, prende o foco, fecha com Esc e navega", async ({ page, i
   await expect(page.locator("#equipe")).toBeInViewport();
 });
 
+test("em celulares estreitos o botão Menu cabe inteiro na tela", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "cabeçalho do celular");
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    const trigger = page.getByRole("button", { name: "Menu" });
+    const box = await trigger.boundingBox();
+    expect(box, `Menu visível em ${width}px`).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+  }
+});
+
 test("cada tratamento leva à sua página de detalhes", async ({ page }) => {
   await page.goto("/");
   const section = page.locator("#tratamentos");
