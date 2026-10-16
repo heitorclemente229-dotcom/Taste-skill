@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+/*
+ * ORALÉ STUDIO · sistema visual
+ *
+ * Paleta da marca (o branco predomina; o pervinca é acento; o azul profundo
+ * cria contraste em pontos estratégicos). Os tons "ink" e "display" são
+ * variações acessíveis do pervinca para uso em texto (WCAG AA).
+ *
+ * Raio (regra única): elementos interativos são pílulas; mídias usam
+ * --radius-media; superfícies, --radius-surface; campos, --radius-field.
+ */
+@theme {
+  --color-porcelain: #f8f9fb;
+  --color-ice: #e8eefa;
+  --color-ice-strong: #dbe4f8;
+  --color-periwinkle: #758cf0;
+  --color-periwinkle-soft: #a9b8f5;
+  /* Pervinca para títulos grandes (3,4:1 sobre porcelana). */
+  --color-accent-display: #6a80ea;
+  /* Pervinca para texto e foco (4,6:1 sobre gelo, 5,1:1 sobre porcelana). */
+  --color-accent-ink: #4f62c9;
+  --color-deep: #152b3a;
+  --color-deep-soft: #1d384b;
+  --color-mineral: #a8b0ba;
+  /* Texto secundário (5,6:1 sobre porcelana). */
+  --color-slate: #56657a;
+  --color-line: #d9dee6;
+  /* Borda de campos de formulário (3,4:1, contraste de componente). */
+  --color-field: #7d8896;
+  --color-danger: #b42318;
+  --color-success: #1e6b4f;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+
+  --radius-media: 1.75rem;
+  --radius-surface: 1.25rem;
+  --radius-field: 0.875rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smile: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Escala tipográfica de títulos (fluida). */
+  --text-display: clamp(3rem, 11.6vw, 9.25rem);
+  --text-display--line-height: 0.94;
+  --text-title: clamp(2.5rem, 6.4vw, 5.75rem);
+  --text-title--line-height: 0.98;
+  --text-heading: clamp(2rem, 4.2vw, 3.75rem);
+  --text-heading--line-height: 1.02;
+  --text-statement: clamp(1.75rem, 3.6vw, 3.25rem);
+  --text-statement--line-height: 1.18;
+  --text-lead: clamp(1.0625rem, 1.35vw, 1.25rem);
+  --text-lead--line-height: 1.6;
+
+  --spacing-gutter: clamp(1.25rem, 5vw, 4.5rem);
+  --spacing-section: clamp(6rem, 13vw, 11rem);
+
+  --animate-scroll-light: scroll-light 2.6s var(--ease-smile) infinite;
+
+  @keyframes scroll-light {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(260%);
+      opacity: 0;
+    }
+  }
+}
+
+/* Escala de camadas (z-index) documentada: conteúdo 0-10, cabeçalho 40, diálogos na top layer nativa. */
+:root {
+  --z-header: 40;
+  --header-h: 4rem;
+  color-scheme: light;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.5rem;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background-color: var(--color-porcelain);
+  }
+
+  /* Trava a rolagem do fundo enquanto um diálogo modal está aberto. */
+  html[data-modal-open] {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--color-porcelain);
+    color: var(--color-deep);
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--color-periwinkle);
+    color: var(--color-white);
+  }
+
+  /* Âncoras não ficam escondidas sob o cabeçalho fixo. */
+  [id] {
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-ink);
+    outline-offset: 3px;
+  }
+
+  .on-deep :focus-visible {
+    outline-color: var(--color-periwinkle-soft);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  dialog::backdrop {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .container-edge {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Halo de luz: gradiente radial estático, movido apenas por transform. */
+  .halo {
+    background: radial-gradient(
+      closest-side,
+      rgb(117 140 240 / 0.34),
+      rgb(169 184 245 / 0.22) 42%,
+      rgb(232 238 250 / 0.5) 64%,
+      rgb(232 238 250 / 0) 100%
+    );
+  }
+
+  .halo-deep {
+    background: radial-gradient(
+      closest-side,
+      rgb(117 140 240 / 0.42),
+      rgb(117 140 240 / 0.16) 48%,
+      rgb(21 43 58 / 0) 100%
+    );
+  }
+
+  /* Recorte "sorriso": base em arco suave, usado na fotografia principal. */
+  .smile-crop {
+    clip-path: polygon(var(--smile-polygon));
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur-md,
+  .backdrop-blur-lg {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
