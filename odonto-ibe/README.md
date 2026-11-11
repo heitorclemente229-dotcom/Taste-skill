@@ -21,6 +21,24 @@ npm run dev                  # http://localhost:3000
 Produção: `npm run build` e `npm start`. É um servidor Node (não é exportação estática), porque
 a política de segurança de conteúdo (CSP) usa um nonce por requisição e o formulário tem backend.
 
+## Publicar na Vercel
+
+O projeto roda na Vercel sem configuração extra: o endereço da publicação é reconhecido
+sozinho (metadados, sitemap e origem aceita pelo formulário). No painel, use `odonto-ibe` como
+diretório raiz do projeto.
+
+Para o site definitivo, defina em **Settings, Environment Variables**:
+
+| Variável | Valor |
+| --- | --- |
+| `SITE_URL` | `https://www.dominio-da-clinica.com.br` |
+| `TRUST_PROXY` | `true` (a Vercel informa o IP real do visitante) |
+| `CLIENT_IP_HEADER` | `x-forwarded-for` |
+| `CONTACT_DELIVERY` e as variáveis de e-mail ou webhook | ver `.env.example` |
+
+Sem as variáveis de entrega, o formulário avisa que o envio está indisponível e encaminha ao
+WhatsApp. Pré-visualizações (qualquer publicação que não seja a de produção) ficam fora do Google.
+
 ## Direção criativa: "Frisos"
 
 A linguagem vem da fachada da clínica: painel turquesa, contorno do dente em linha e frisos

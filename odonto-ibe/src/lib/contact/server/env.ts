@@ -122,10 +122,20 @@ function readAllowedOrigins(env: Env, isProduction: boolean, warnings: ConfigIss
     const origin = toOrigin(siteUrl);
     if (origin) origins.add(origin);
     else warnings.push("site_url_invalid");
-  } else if (isProduction) {
+  } else if (isProduction && !clean(env.VERCEL_URL)) {
+    // Sem SITE_URL e fora da Vercel, nenhuma origem seria aceita em produção.
     warnings.push("site_url_invalid");
   }
   if (!isProduction) for (const origin of DEV_ORIGINS) origins.add(origin);
+  // Na Vercel, a plataforma informa os endereços de cada publicação (só o
+  // nome do host, sem "https://"). Eles valem como origem do próprio site,
+  // para o formulário funcionar nas pré-visualizações sem configurar nada.
+  for (const host of [env.VERCEL_URL, env.VERCEL_BRANCH_URL, env.VERCEL_PROJECT_PRODUCTION_URL]) {
+    const value = clean(host);
+    if (!value) continue;
+    const origin = toOrigin(`https://${value}`);
+    if (origin) origins.add(origin);
+  }
   for (const entry of clean(env.ALLOWED_ORIGINS).split(",")) {
     const value = entry.trim();
     if (!value) continue;

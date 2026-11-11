@@ -9,6 +9,26 @@ function check(headers: Record<string, string>, env: Record<string, string | und
   return checkOrigin(new Headers(headers), config);
 }
 
+describe("origens da Vercel", () => {
+  it("aceita os endereços informados pela plataforma e ignora valores inválidos", () => {
+    const env = readContactEnv({
+      NODE_ENV: "production",
+      VERCEL_URL: "odonto-ibe-abc123.vercel.app",
+      VERCEL_BRANCH_URL: " odonto-ibe-git-main.vercel.app ",
+      VERCEL_PROJECT_PRODUCTION_URL: "nao e um host",
+    });
+    expect([...env.allowedOrigins].sort()).toEqual(["https://odonto-ibe-abc123.vercel.app", "https://odonto-ibe-git-main.vercel.app"]);
+    // Na Vercel, a falta de SITE_URL não é um problema de configuração.
+    expect(env.warnings).not.toContain("site_url_invalid");
+  });
+
+  it("fora da Vercel, produção sem SITE_URL continua sem aceitar origem alguma", () => {
+    const env = readContactEnv({ NODE_ENV: "production" });
+    expect(env.allowedOrigins.size).toBe(0);
+    expect(env.warnings).toContain("site_url_invalid");
+  });
+});
+
 describe("origens permitidas", () => {
   it("inclui SITE_URL e, fora de produção, localhost", () => {
     const { allowedOrigins } = readContactEnv({ NODE_ENV: "development", SITE_URL: `${SITE}/agendar?x=1` });

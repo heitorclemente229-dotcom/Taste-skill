@@ -85,9 +85,16 @@ export const navigation = [
 
 export type SectionId = (typeof navigation)[number]["id"];
 
-/** Endereço público do site (metadados, sitemap e dados estruturados). */
+/**
+ * Endereço público do site (metadados, sitemap e dados estruturados).
+ *
+ * Ordem: SITE_URL (o domínio definitivo), depois o endereço que a Vercel
+ * informa sozinha em cada publicação e, por fim, o endereço local.
+ */
 export function siteUrl(): URL {
-  const raw = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const raw =
+    process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || (vercelHost ? `https://${vercelHost}` : "http://localhost:3000");
   try {
     const url = new URL(raw);
     if (url.protocol === "https:" || url.protocol === "http:") return new URL(url.origin);
