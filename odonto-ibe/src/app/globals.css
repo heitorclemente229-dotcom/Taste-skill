@@ -1,0 +1,763 @@
+@import "tailwindcss";
+
+/*
+ * ODONTO IBE · sistema visual "Frisos"
+ *
+ * A linguagem nasce da fachada da clínica: painel turquesa, contorno do dente
+ * em linha e frisos horizontais cinza nas laterais.
+ *
+ * Cor: o branco é a base, o turquesa é o único acento e o verde escuro cria
+ * contraste. O turquesa da marca nunca recebe texto branco (2,5:1); texto
+ * sobre turquesa é sempre verde escuro (5,9:1). Para texto em destaque sobre
+ * fundo claro existe o `teal` (5,6:1).
+ *
+ * Forma (regra única): tudo é reto, com 2px de raio em mídias, botões,
+ * campos e painéis. Nada de pílulas nem cantos grandes.
+ *
+ * Camadas (z-index): conteúdo 0 a 10, barra de ações do celular 30,
+ * cabeçalho 40, diálogos na top layer nativa.
+ */
+@theme {
+  --color-paper: #fafcfb;
+  --color-mist: #eef3f2;
+  --color-fog: #dce4e2;
+  /* Cinza dos frisos da fachada. */
+  --color-slat: #b9c3c1;
+  /* Texto secundário (6,2:1 sobre paper, 5,6:1 sobre mist). */
+  --color-stone: #55625f;
+  --color-turquoise: #2cb7ab;
+  --color-turquoise-soft: #bfe9e3;
+  --color-turquoise-wash: #e3f5f2;
+  /* Turquesa para texto e foco sobre fundo claro. */
+  --color-teal: #0b7268;
+  --color-forest: #0a2e2b;
+  --color-forest-soft: #14433f;
+  /* Borda de campos de formulário (3,6:1, contraste de componente). */
+  --color-field: #74827f;
+  --color-danger: #b42318;
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-brand: 2px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Curva dos frisos: sai devagar, atravessa rápido, assenta com calma. */
+  --ease-friso: cubic-bezier(0.7, 0, 0.2, 1);
+
+  --text-display: clamp(2.625rem, 6.1vw, 5.5rem);
+  --text-display--line-height: 1;
+  --text-title: clamp(2.125rem, 4.3vw, 3.875rem);
+  --text-title--line-height: 1.04;
+  --text-heading: clamp(1.5rem, 2.3vw, 2.125rem);
+  --text-heading--line-height: 1.12;
+  --text-lead: clamp(1.0625rem, 1.25vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+
+  --spacing-gutter: clamp(1.25rem, 5vw, 4rem);
+  --spacing-section: clamp(5rem, 11vw, 9.5rem);
+}
+
+:root {
+  --z-dock: 30;
+  --z-header: 40;
+  --header-h: 4rem;
+  color-scheme: light;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.5rem;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background-color: var(--color-paper);
+  }
+
+  /* Trava a rolagem do fundo enquanto um diálogo modal está aberto. */
+  html:has(dialog[open]:modal) {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-forest);
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--color-turquoise);
+    color: var(--color-forest);
+  }
+
+  /* Âncoras não ficam escondidas sob o cabeçalho fixo. */
+  [id] {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 3px;
+  }
+
+  .on-forest :focus-visible {
+    outline-color: var(--color-turquoise-soft);
+  }
+
+  .on-turquoise :focus-visible {
+    outline-color: var(--color-forest);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  dialog {
+    max-width: none;
+    max-height: none;
+  }
+
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  /*
+   * Tipografia de exibição: Bricolage Grotesque variável. Peso e largura
+   * ficam em variáveis para que as animações ("tipografia viva") e os
+   * estados de hover mexam nos eixos da fonte, e não em tamanho ou cor.
+   */
+  .display {
+    font-family: var(--font-display);
+    font-variation-settings:
+      "wght" var(--wght, 560),
+      "wdth" var(--wdth, 100);
+    letter-spacing: -0.018em;
+  }
+
+  /* Título da primeira dobra: sempre em duas linhas, do celular ao desktop. */
+  .hero-title {
+    font-size: clamp(2rem, 9.4vw, 4.5rem);
+    line-height: 1;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-title {
+      font-size: clamp(3rem, 5.2vw, 4.75rem);
+    }
+  }
+
+  /* Linha de título com máscara: o texto sobe de trás da linha de base. */
+  .mask-line {
+    display: block;
+    overflow: hidden;
+    /* Folga para acentos (é, ã) e descendentes (ç, g, p) não serem cortados. */
+    padding-block: 0.14em 0.16em;
+    margin-block: -0.14em -0.16em;
+  }
+
+  .mask-line > span {
+    display: block;
+  }
+
+  /* Persiana de frisos sobre uma mídia. Sem animação, os frisos ficam abertos. */
+  .slats {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-brand);
+  }
+
+  .slats-media {
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  .slat {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--i) * 100% / var(--n));
+    height: calc(100% / var(--n) + 1px);
+    background: var(--slat-color, var(--color-paper));
+    transform-origin: top;
+    transform: scaleY(0);
+    pointer-events: none;
+  }
+}
+
+/* Carrossel horizontal com encaixe, sem barra de rolagem visível. */
+@utility snap-row {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+}
+
+/* Dica de deslizar: a fileira dá três pequenos empurrões para a esquerda. */
+@utility swipe-nudge {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: swipe-nudge 1.5s var(--ease-friso) 0.4s 3;
+  }
+}
+
+@utility container-edge {
+  width: 100%;
+  max-width: 86rem;
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter);
+}
+
+/* Alinha à esquerda com o container e sangra até a borda direita da tela. */
+@utility bleed-right {
+  padding-left: max(var(--spacing-gutter), calc((100% - 86rem) / 2 + var(--spacing-gutter)));
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Movimento                                                                 */
+/* ------------------------------------------------------------------------ */
+
+@keyframes line-rise {
+  from {
+    transform: translateY(108%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* Tipografia viva: a letra chega leve e estreita e assenta no peso final. */
+@keyframes type-settle {
+  from {
+    font-variation-settings:
+      "wght" 260,
+      "wdth" 80;
+  }
+  to {
+    font-variation-settings:
+      "wght" var(--wght, 560),
+      "wdth" var(--wdth, 100);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slat-open {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes zoom-settle {
+  from {
+    scale: 1.12;
+  }
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Traço que se desenha (o caminho precisa de pathLength="1"). */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drift-y {
+  from {
+    translate: 0 var(--drift, 6%);
+  }
+  to {
+    translate: 0 calc(var(--drift, 6%) * -1);
+  }
+}
+
+@keyframes drift-x {
+  from {
+    translate: var(--drift, 8%) 0;
+  }
+  to {
+    translate: calc(var(--drift, 8%) * -1) 0;
+  }
+}
+
+/* Dica de deslizar: um pequeno vai e volta, três vezes. */
+@keyframes swipe-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-14px);
+  }
+}
+
+@keyframes scroll-cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+@keyframes progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.progress-sweep {
+  animation: progress-sweep 1.1s var(--ease-friso) infinite;
+}
+
+.draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /*
+   * Estados iniciais das revelações acionadas ao entrar na tela. O atributo
+   * data-inview é colocado por <RevealObserver> (IntersectionObserver).
+   * [data-load] dispara as mesmas animações no carregamento, só com CSS, sem
+   * esperar o JavaScript (usado na primeira dobra).
+   */
+  [data-reveal]:not([data-inview]) .rv-rise > span {
+    transform: translateY(108%);
+  }
+
+  [data-reveal]:not([data-inview]) .rv-fade,
+  [data-reveal]:not([data-inview]).rv-fade {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  [data-reveal]:not([data-inview]) .rv-grow,
+  [data-reveal]:not([data-inview]).rv-grow {
+    transform: scaleX(0);
+  }
+
+  [data-reveal]:not([data-inview]) .rv-draw {
+    stroke-dashoffset: 1;
+  }
+
+  :is([data-load], [data-reveal][data-inview]) .rv-rise > span {
+    animation: line-rise 1.05s var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 90ms + var(--d, 0ms));
+  }
+
+  :is([data-load], [data-reveal][data-inview]) .rv-type,
+  :is([data-load], [data-reveal][data-inview]).rv-type {
+    animation: type-settle 1.5s var(--ease-out-expo) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  :is([data-load], [data-reveal][data-inview]) .rv-fade,
+  :is([data-load], [data-reveal][data-inview]).rv-fade {
+    animation: fade-up 0.9s var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 90ms + var(--d, 0ms));
+  }
+
+  :is([data-load], [data-reveal][data-inview]) .rv-grow,
+  :is([data-load], [data-reveal][data-inview]).rv-grow {
+    animation: grow-x 1.1s var(--ease-friso) both;
+    animation-delay: calc(var(--i, 0) * 90ms + var(--d, 0ms));
+  }
+
+  :is([data-load], [data-reveal][data-inview]) .rv-draw {
+    animation: draw var(--draw-duration, 1.2s) var(--ease-friso) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  /* Persiana no carregamento (primeira dobra e topo das páginas internas). */
+  .slats[data-slats="load"] .slat {
+    animation: slat-open 1.05s var(--ease-friso) both;
+    animation-delay: calc(var(--i) * 75ms + var(--d, 0ms));
+  }
+
+  .slats[data-slats="load"] .slats-media {
+    animation: zoom-settle 1.9s var(--ease-out-expo) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .scroll-cue {
+    animation: scroll-cue 2.4s var(--ease-friso) infinite;
+  }
+
+  /*
+   * Animações guiadas pela rolagem, em CSS puro (sem JavaScript). Navegadores
+   * sem suporte mostram o estado final, estático.
+   */
+  @supports (animation-timeline: view()) {
+    /* Cada friso usa a própria posição na tela: os de cima abrem primeiro. */
+    .slats[data-slats="view"] .slat {
+      animation: slat-open linear both;
+      animation-timeline: view();
+      animation-range: cover 2% cover 30%;
+    }
+
+    .slats[data-slats="view"] .slats-media {
+      animation: zoom-settle linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 55%;
+    }
+
+    .drift-y {
+      animation: drift-y linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+
+    .drift-x {
+      animation: drift-x linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+
+    /* Barra de progresso de leitura no cabeçalho. */
+    .scroll-progress {
+      animation: grow-x linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* Traço que se desenha conforme o elemento atravessa a tela. */
+    .draw-on-scroll {
+      animation: draw linear both;
+      animation-timeline: view();
+      animation-range: cover 5% cover 60%;
+    }
+  }
+}
+
+/* Barra de progresso: só aparece onde a rolagem em CSS é suportada. */
+.scroll-progress {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Tratamentos: palco de fotos no desktop                                    */
+/* ------------------------------------------------------------------------ */
+
+/*
+ * No desktop, as fotos de todos os tratamentos ocupam o mesmo palco. A foto
+ * do item ativo entra de baixo para cima por cima da anterior, que só sai de
+ * cena depois de coberta. No celular cada foto fica no próprio cartão.
+ */
+@media (min-width: 1024px) {
+  .t-stage {
+    clip-path: inset(100% 0 0 0);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  [data-state="previous"] > a > .t-stage {
+    clip-path: inset(0);
+    z-index: 1;
+  }
+
+  [data-state="active"] > a > .t-stage {
+    clip-path: inset(0);
+    pointer-events: auto;
+    z-index: 2;
+    transition: clip-path 0.75s var(--ease-friso);
+  }
+
+  [data-state="active"] > a > .t-stage img {
+    animation: zoom-settle 1.4s var(--ease-out-expo) both;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Diferenciais: cena fixada na rolagem                                      */
+/* ------------------------------------------------------------------------ */
+
+.pin-track {
+  /* Cada diferencial ocupa 60% de uma tela de rolagem. */
+  height: calc(var(--steps) * 60vh + 100vh);
+}
+
+.pin-stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow: clip;
+  padding-block: calc(var(--header-h) + 1rem) 5.5rem;
+}
+
+/* Todos os itens ocupam a mesma célula: a altura é a do maior, sem position absolute. */
+.pin-list {
+  display: grid;
+}
+
+.pin-item {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition:
+    opacity 0.45s ease,
+    transform 0.8s var(--ease-out-expo);
+}
+
+.pin-item[data-state="past"] {
+  transform: translateY(-28px);
+}
+
+.pin-item[data-state="future"] {
+  transform: translateY(28px);
+}
+
+.pin-item[data-state="active"] {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.12s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-track {
+    height: auto;
+  }
+
+  .pin-stage {
+    position: static;
+    height: auto;
+    padding-block: var(--spacing-section);
+  }
+
+  .pin-list {
+    gap: 2.5rem;
+  }
+
+  .pin-item,
+  .pin-item[data-state] {
+    grid-area: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .pin-progress {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Componentes nativos animados só com CSS                                   */
+/* ------------------------------------------------------------------------ */
+
+/* FAQ: <details> com altura animada onde o navegador permite. */
+.faq-item {
+  interpolate-size: allow-keywords;
+}
+
+.faq-item::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  transition:
+    block-size 0.45s var(--ease-out-expo),
+    content-visibility 0.45s allow-discrete;
+}
+
+.faq-item[open]::details-content {
+  block-size: auto;
+}
+
+.faq-icon-bar {
+  transition: transform 0.35s var(--ease-friso);
+}
+
+.faq-item[open] .faq-icon-bar-v {
+  transform: scaleY(0);
+}
+
+/* Diálogos (menu do celular e ampliação de fotos): entrada e saída suaves. */
+dialog.sheet {
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+
+dialog.sheet[open] {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog.sheet[open] {
+    opacity: 0;
+  }
+}
+
+dialog.sheet::backdrop {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Transições entre páginas (View Transitions)                               */
+/* ------------------------------------------------------------------------ */
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+::view-transition-old(.vt-page) {
+  animation: vt-out 0.26s ease both;
+}
+
+::view-transition-new(.vt-page) {
+  animation: vt-in 0.55s var(--ease-out-expo) 0.14s both;
+}
+
+/* Elemento compartilhado: a foto do tratamento viaja até o topo da página. */
+::view-transition-group(.vt-photo) {
+  animation-duration: 0.7s;
+  animation-timing-function: var(--ease-friso);
+}
+
+::view-transition-old(.vt-photo),
+::view-transition-new(.vt-photo) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Preferências do sistema                                                   */
+/* ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur-md {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
