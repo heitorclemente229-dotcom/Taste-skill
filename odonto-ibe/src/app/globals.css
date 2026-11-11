@@ -160,13 +160,13 @@
 
   /* Título da primeira dobra: sempre em duas linhas, do celular ao desktop. */
   .hero-title {
-    font-size: clamp(2rem, 9.4vw, 4.5rem);
+    font-size: clamp(1.75rem, 8.8vw, 4.5rem);
     line-height: 1;
   }
 
   @media (min-width: 1024px) {
     .hero-title {
-      font-size: clamp(3rem, 5.2vw, 4.75rem);
+      font-size: clamp(2.75rem, 4.8vw, 4.5rem);
     }
   }
 
@@ -186,7 +186,12 @@
   /* Persiana de frisos sobre uma mídia. Sem animação, os frisos ficam abertos. */
   .slats {
     position: relative;
-    overflow: hidden;
+    /*
+     * clip, e não hidden: overflow hidden transformaria este elemento no
+     * contêiner de rolagem dos frisos, e a linha do tempo view() deles
+     * pararia de acompanhar a rolagem da página.
+     */
+    overflow: clip;
     border-radius: var(--radius-brand);
   }
 
@@ -634,8 +639,19 @@
     transform: none;
   }
 
-  .pin-progress {
+  .pin-progress,
+  .pin-head {
     display: none;
+  }
+
+  /* O símbolo aparece completo: traço inteiro e preenchimento. */
+  .pin-stroke {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .pin-fill {
+    opacity: 1 !important;
   }
 }
 

@@ -6,6 +6,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import { address, contact, navigation, type SectionId } from "@/config/site";
 import { cta } from "@/content/home";
 import { cn } from "@/lib/cn";
+import { loopFocus } from "@/lib/focus-loop";
 import { Logo } from "@/components/brand/logo";
 import { WhatsAppLink } from "@/components/ui/whatsapp-link";
 
@@ -35,6 +36,7 @@ export function MobileMenu({ open, onClose, current }: MobileMenuProps) {
     <dialog
       ref={ref}
       onClose={onClose}
+      onKeyDown={loopFocus}
       aria-label="Menu"
       className="sheet fixed inset-0 m-0 h-dvh w-full overflow-y-auto bg-paper text-forest xl:hidden"
     >

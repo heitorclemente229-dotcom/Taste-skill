@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { differentials } from "@/content/home";
 import { TOOTH_PATH, TOOTH_VIEWBOX } from "@/components/brand/tooth";
@@ -16,12 +16,13 @@ const count = items.length;
  *
  * O progresso vem de useScroll (motion values, nenhum re-render por quadro);
  * o React só renderiza de novo quando o item ativo muda. Com movimento
- * reduzido a cena vira uma lista comum, com o símbolo já desenhado (CSS).
+ * reduzido a cena vira uma lista comum, com o símbolo já desenhado. Essa
+ * troca é feita só em CSS (classes pin-*): o HTML é idêntico no servidor e no
+ * navegador, então não há divergência de hidratação.
  */
 export function Differentials() {
   const track = useRef<HTMLDivElement>(null);
   const path = useRef<SVGPathElement>(null);
-  const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
   const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
 
@@ -80,7 +81,7 @@ export function Differentials() {
 
             <div className="order-1 flex justify-center lg:order-2 lg:col-span-5 lg:col-start-8">
               <svg aria-hidden="true" focusable="false" viewBox={TOOTH_VIEWBOX} fill="none" className="h-[30dvh] w-auto overflow-visible lg:h-[62dvh]">
-                <motion.path d={TOOTH_PATH} fill="var(--color-turquoise)" style={{ opacity: reduce ? 1 : fill }} />
+                <motion.path d={TOOTH_PATH} fill="var(--color-turquoise)" className="pin-fill" style={{ opacity: fill }} />
                 <path d={TOOTH_PATH} stroke="var(--color-turquoise-soft)" strokeWidth={0.4} />
                 <motion.path
                   ref={path}
@@ -89,9 +90,10 @@ export function Differentials() {
                   strokeWidth={0.75}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  style={{ pathLength: reduce ? 1 : drawn }}
+                  className="pin-stroke"
+                  style={{ pathLength: drawn }}
                 />
-                {reduce ? null : <motion.circle r={1.3} fill="var(--color-forest)" style={{ cx: headX, cy: headY, opacity: headOpacity }} />}
+                <motion.circle r={1.3} fill="var(--color-forest)" className="pin-head" style={{ cx: headX, cy: headY, opacity: headOpacity }} />
               </svg>
             </div>
           </div>

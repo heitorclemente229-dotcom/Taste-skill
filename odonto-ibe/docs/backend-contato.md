@@ -1,11 +1,12 @@
-# Backend do formulário de agendamento
+# Backend do formulário de contato
 
-Este documento descreve como o site recebe uma **solicitação** de agendamento,
-quais proteções existem e por quê, como conectar a entrega (Resend ou webhook)
-e o que o site deliberadamente **não** faz.
+Este documento descreve como o site recebe uma **mensagem de contato**, quais
+proteções existem e por quê, como conectar a entrega (Resend ou webhook) e o
+que o site deliberadamente **não** faz.
 
 O formulário não reserva horário. Ele envia um pedido de contato para a equipe
-da clínica, que confirma data e horário no retorno.
+da clínica, que combina data e horário no retorno. A base deste backend foi
+construída e testada no projeto anterior (ORALÉ STUDIO) e adaptada aqui.
 
 ## Arquivos envolvidos
 
@@ -221,7 +222,7 @@ Exemplo de corpo:
   "id": "0b7a4c1e-0000-4000-8000-000000000000",
   "receivedAt": "2026-10-14T18:30:00.000Z",
   "source": "site",
-  "privacyNoticeVersion": "2026-10",
+  "privacyNoticeVersion": "2026-11",
   "data": {
     "name": "Ana Souza",
     "phone": "+5511912345678",

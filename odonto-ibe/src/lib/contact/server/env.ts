@@ -3,7 +3,7 @@ import * as z from "zod";
 import { isTurnstileConfigured } from "@/lib/contact/turnstile-config";
 
 /**
- * Configuração do backend de agendamento, lida das variáveis de ambiente.
+ * Configuração do backend de contato, lida das variáveis de ambiente.
  *
  * É lida a cada requisição (não no carregamento do módulo), para que
  * mudanças de ambiente valham sem reiniciar módulos e para que os testes

@@ -36,7 +36,7 @@ describe("CSP por requisição", () => {
     expect(proxy(request("https://www.odontoibe.example/")).headers.get("content-security-policy")).not.toContain("cloudflare");
     useProxyEnv({ TURNSTILE_SITE_KEY: "0x4AAA", TURNSTILE_SECRET_KEY: "0x4BBB" });
     expect(proxy(request("https://www.odontoibe.example/")).headers.get("content-security-policy")).toContain(
-      "frame-src https://challenges.cloudflare.com",
+      "frame-src https://www.google.com https://challenges.cloudflare.com",
     );
   });
 

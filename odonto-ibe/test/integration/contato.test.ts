@@ -192,7 +192,7 @@ describe("entrega por Resend", () => {
     expect(payload.from).toBe(RESEND_ENV.CONTACT_EMAIL_FROM);
     expect(payload.to).toEqual([RESEND_ENV.CONTACT_EMAIL_TO]);
     expect(payload.reply_to).toBe(PERSON.email);
-    expect(payload.subject).toBe(`Nova solicitação de agendamento: ${PERSON.firstName}`);
+    expect(payload.subject).toBe(`Nova mensagem pelo site: ${PERSON.firstName}`);
 
     expect(payload.html).not.toContain("<script>");
     expect(payload.html).toContain("&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt; &amp; &quot;aspas&quot;");
@@ -200,7 +200,7 @@ describe("entrega por Resend", () => {
     expect(payload.html).toContain("(21) 99876-5432");
     expect(payload.html).toContain("WhatsApp");
     expect(payload.html).toContain("Manhã");
-    expect(payload.html).toContain("Primeira avaliação");
+    expect(payload.html).toContain("Agendar uma avaliação");
     expect(payload.text).toContain(message);
     expect(payload.text).toContain("(horário de Brasília)");
   });
@@ -264,7 +264,7 @@ describe("configuração ausente ou incompleta", () => {
     const output = consoleLines.join("\n");
     expect(output).toContain("resend_to_invalid");
     expect(output).not.toContain(RESEND_ENV.RESEND_API_KEY);
-    expect(output).not.toContain("agendamento@odontoibe.example");
+    expect(output).not.toContain("contato@odontoibe.example");
   });
 
   it("aceita http para receptor em loopback também em produção (e2e com next start)", async () => {

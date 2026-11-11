@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gallery } from "@/content/photos";
 import { cn } from "@/lib/cn";
+import { loopFocus } from "@/lib/focus-loop";
 import { SwipeRow } from "@/components/ui/swipe-row";
 
 /**
@@ -83,6 +84,7 @@ export function Gallery() {
       <dialog
         ref={dialogRef}
         onClose={() => setIndex(null)}
+        onKeyDown={loopFocus}
         onClick={(event) => {
           if (event.target === event.currentTarget) close();
         }}

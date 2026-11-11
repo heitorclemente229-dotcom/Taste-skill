@@ -15,7 +15,7 @@ import type { ContactData, ContactPreference, Period, Topic } from "@/lib/contac
  */
 
 /** Versão do aviso de privacidade aceito. Atualize ao mudar o texto do aviso. */
-export const PRIVACY_NOTICE_VERSION = "2026-10";
+export const PRIVACY_NOTICE_VERSION = "2026-11";
 
 export const SIGNATURE_HEADER = "X-OdontoIbe-Signature";
 export const TIMESTAMP_HEADER = "X-OdontoIbe-Timestamp";

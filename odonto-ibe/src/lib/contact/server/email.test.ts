@@ -18,7 +18,7 @@ function data(overrides: Record<string, unknown> = {}): ContactData {
     email: "ana@example.org",
     contactPreference: "email",
     period: "indiferente",
-    topic: "clareamento",
+    topic: "tratamentos",
     message: "Linha 1\nLinha <2> & \"3\"",
     consent: true,
     ...overrides,
@@ -71,7 +71,7 @@ describe("corpo do e-mail", () => {
     expect(html).toContain("ana@example.org");
     expect(html).toContain("E-mail");
     expect(html).toContain("Sem preferência");
-    expect(html).toContain("Clareamento dental");
+    expect(html).toContain("Dúvida sobre tratamentos");
     expect(html).toContain("14/10/2026 às 15:30");
   });
 

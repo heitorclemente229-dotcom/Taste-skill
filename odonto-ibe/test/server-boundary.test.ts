@@ -15,7 +15,7 @@ function walk(dir: string): string[] {
 }
 
 describe("fronteira servidor/navegador", () => {
-  it("todo módulo do backend de agendamento importa server-only", () => {
+  it("todo módulo do backend de contato importa server-only", () => {
     const modules = walk(SERVER_DIR).filter((path) => !path.endsWith(".test.ts"));
     expect(modules.length).toBeGreaterThan(5);
     for (const path of modules) {

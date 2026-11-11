@@ -10,7 +10,7 @@ export const PERSON = {
 } as const;
 
 export const SITE_ORIGIN = "https://www.odontoibe.example";
-export const WEBHOOK_URL = "https://hooks.odontoibe.example/agendamento";
+export const WEBHOOK_URL = "https://hooks.odontoibe.example/contato";
 export const WEBHOOK_SECRET = "whsec_test_0123456789abcdef0123456789abcdef";
 
 export const ENV_KEYS = [
@@ -43,7 +43,7 @@ export const RESEND_ENV = {
   SITE_URL: SITE_ORIGIN,
   CONTACT_DELIVERY: "resend",
   RESEND_API_KEY: "re_test_1234567890abcdef",
-  CONTACT_EMAIL_FROM: "Odonto Ibe <agendamento@odontoibe.example>",
+  CONTACT_EMAIL_FROM: "Odonto Ibe <contato@odontoibe.example>",
   CONTACT_EMAIL_TO: "recepcao@odontoibe.example",
   RATE_LIMIT_SALT: "sal-de-teste",
 } as const;
@@ -54,7 +54,7 @@ export const TURNSTILE_ENV = {
   TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
 } as const;
 
-/** Limpa as variáveis do agendamento e aplica as informadas. */
+/** Limpa as variáveis do formulário de contato e aplica as informadas. */
 export function useEnv(vars: Record<string, string | undefined>, nodeEnv = "test"): void {
   for (const key of ENV_KEYS) vi.stubEnv(key, undefined);
   vi.stubEnv("NODE_ENV", nodeEnv);

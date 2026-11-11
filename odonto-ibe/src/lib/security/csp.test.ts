@@ -34,7 +34,8 @@ describe("buildCsp em produção", () => {
     expect(csp.get("base-uri")).toEqual(["'self'"]);
     expect(csp.get("form-action")).toEqual(["'self'"]);
     expect(csp.get("frame-ancestors")).toEqual(["'none'"]);
-    expect(csp.get("frame-src")).toEqual(["'none'"]);
+    // O único iframe permitido é o mapa do Google, carregado quando a pessoa pede.
+    expect(csp.get("frame-src")).toEqual(["https://www.google.com"]);
   });
 
   it("upgrade-insecure-requests somente em HTTPS fora de desenvolvimento", () => {
@@ -50,7 +51,7 @@ describe("buildCsp em produção", () => {
     const on = prod({ turnstile: true });
     expect(on.get("script-src")).toContain(origin);
     expect(on.get("connect-src")).toContain(origin);
-    expect(on.get("frame-src")).toEqual([origin]);
+    expect(on.get("frame-src")).toEqual(["https://www.google.com", origin]);
   });
 });
 

@@ -79,7 +79,7 @@ export function Hero() {
               ))}
             </div>
 
-            <Slats mode="load" count={7} delay={150} color="var(--color-turquoise)" className="aspect-[4/5] w-full bg-mist">
+            <Slats mode="load" count={7} delay={150} color="var(--color-turquoise)" className="aspect-[4/5] w-full bg-mist sm:max-lg:aspect-[16/11]">
               <Image
                 src={photos.hero.src}
                 alt={photos.hero.alt}
@@ -89,7 +89,7 @@ export function Hero() {
                 loading="eager"
                 quality={80}
                 sizes="(min-width: 1024px) 38vw, 100vw"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover sm:max-lg:object-[50%_28%]"
               />
             </Slats>
 
