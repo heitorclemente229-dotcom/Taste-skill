@@ -10,6 +10,12 @@ type MaskHeadingProps = {
   load?: boolean;
   /** Atraso em milissegundos. */
   delay?: number;
+  /**
+   * Anima os eixos da fonte (peso e largura) no desktop. Desligue em títulos
+   * que podem quebrar em mais de uma linha por item, como nomes editáveis:
+   * a mudança de largura deslocaria o conteúdo abaixo.
+   */
+  settle?: boolean;
 };
 
 /**
@@ -18,10 +24,10 @@ type MaskHeadingProps = {
  * assentam no valor final. O texto continua sendo texto real; entre as
  * linhas vai um espaço para o nome acessível não juntar as palavras.
  */
-export function MaskHeading({ lines, as: Tag = "h2", id, className, load = false, delay = 0 }: MaskHeadingProps) {
+export function MaskHeading({ lines, as: Tag = "h2", id, className, load = false, delay = 0, settle = true }: MaskHeadingProps) {
   const trigger = load ? { "data-load": "" } : { "data-reveal": "" };
   return (
-    <Tag id={id} className={cn("display rv-type", className)} style={{ "--d": `${delay}ms` } as CSSProperties} {...trigger}>
+    <Tag id={id} className={cn("display", settle && "rv-type", className)} style={{ "--d": `${delay}ms` } as CSSProperties} {...trigger}>
       {lines.map((line, index) => (
         <Fragment key={index}>
           {index > 0 ? " " : null}

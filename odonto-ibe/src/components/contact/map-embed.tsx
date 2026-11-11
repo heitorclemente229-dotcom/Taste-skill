@@ -1,7 +1,7 @@
 "use client";
 
 import { MapPin } from "lucide-react";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { address, maps } from "@/config/site";
 import { contactSection } from "@/content/home";
 import { buttonClasses } from "@/components/ui/button";
@@ -16,10 +16,17 @@ import { buttonClasses } from "@/components/ui/button";
  */
 export function MapEmbed() {
   const [loaded, setLoaded] = useState(false);
+  const frame = useRef<HTMLIFrameElement>(null);
+
+  // O botão some ao carregar o mapa: o foco vai para o mapa, e não se perde.
+  useEffect(() => {
+    if (loaded) frame.current?.focus({ preventScroll: true });
+  }, [loaded]);
 
   if (loaded) {
     return (
       <iframe
+        ref={frame}
         title={`Mapa: ${address.street}, ${address.district}, ${address.city}`}
         src={maps.embedUrl}
         loading="lazy"

@@ -160,7 +160,7 @@
 
   /* Título da primeira dobra: sempre em duas linhas, do celular ao desktop. */
   .hero-title {
-    font-size: clamp(1.75rem, 8.8vw, 4.5rem);
+    font-size: clamp(1.625rem, 8.3vw, 4.5rem);
     line-height: 1;
   }
 
@@ -451,10 +451,18 @@
     animation-delay: calc(var(--i, 0) * 90ms + var(--d, 0ms));
   }
 
-  :is([data-load], [data-reveal][data-inview]) .rv-type,
-  :is([data-load], [data-reveal][data-inview]).rv-type {
-    animation: type-settle 1.5s var(--ease-out-expo) both;
-    animation-delay: var(--d, 0ms);
+  /*
+   * Tipografia viva só a partir de 1024px: mudar peso e largura muda a
+   * largura do texto. No desktop cada linha do título é uma linha só; no
+   * celular o texto quebra, e a animação empurraria o conteúdo abaixo
+   * (deslocamento de layout). No celular fica apenas a máscara.
+   */
+  @media (min-width: 1024px) {
+    :is([data-load], [data-reveal][data-inview]) .rv-type,
+    :is([data-load], [data-reveal][data-inview]).rv-type {
+      animation: type-settle 1.5s var(--ease-out-expo) both;
+      animation-delay: var(--d, 0ms);
+    }
   }
 
   :is([data-load], [data-reveal][data-inview]) .rv-fade,

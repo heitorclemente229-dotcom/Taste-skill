@@ -152,7 +152,6 @@ O arquivo `.env.example` lista todas, com exemplos falsos. Copie para
 | --- | --- | --- |
 | `SITE_URL` | Sim em produção | Endereço canônico. Define a origem aceita pela API, os metadados e o destino do redirecionamento HTTPS. |
 | `NEXT_PUBLIC_SITE_URL` | Não | Alternativa a `SITE_URL` para os metadados. |
-| `NEXT_PUBLIC_CONTACT_URL` | Não | Link de um sistema de reservas externo, exibido junto ao formulário (embutido no build). |
 | `ALLOWED_ORIGINS` | Não | Origens extras aceitas, separadas por vírgula. |
 | `CONTACT_DELIVERY` | Sim | `resend` ou `webhook`. Vazio = formulário indisponível (503). |
 | `RESEND_API_KEY` | Com `resend` | Chave da API da Resend (`re_...`). |
@@ -186,7 +185,7 @@ no log como `{"event":"contact.config","issue":"..."}`, uma vez por processo.
    ```
    CONTACT_DELIVERY=resend
    RESEND_API_KEY=re_...
-   CONTACT_EMAIL_FROM="Clínica <agendamento@seudominio.com.br>"
+   CONTACT_EMAIL_FROM="Odonto Ibe <contato@seudominio.com.br>"
    CONTACT_EMAIL_TO=recepcao@seudominio.com.br
    ```
 
@@ -206,7 +205,7 @@ Configure:
 
 ```
 CONTACT_DELIVERY=webhook
-CONTACT_WEBHOOK_URL=https://receptor.seudominio.com.br/agendamento
+CONTACT_WEBHOOK_URL=https://receptor.seudominio.com.br/contato
 CONTACT_WEBHOOK_SECRET=<saída de: openssl rand -hex 32>
 ```
 
@@ -229,7 +228,7 @@ Exemplo de corpo:
     "email": null,
     "contactPreference": "whatsapp",
     "period": "tarde",
-    "topic": "clareamento",
+    "topic": "avaliacao",
     "message": null,
     "consent": true
   }

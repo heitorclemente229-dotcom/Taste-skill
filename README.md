@@ -22,3 +22,10 @@ Depois, peça algo como "crie uma landing page para..." ou chame `/design-taste-
   - `deploy-to-vercel`: faz deploy do projeto na Vercel (envia o código para o endpoint de deploy da Vercel).
   - `vercel-cli-with-tokens`: usa a CLI da Vercel com token de acesso.
   - `vercel-optimize`: analisa custo e performance de projetos já publicados na Vercel (precisa da CLI `vercel` autenticada).
+
+## Projetos feitos com a skill
+
+- [`orale-studio/`](orale-studio/): ORALÉ STUDIO, clínica odontológica premium.
+- [`odonto-ibe/`](odonto-ibe/): Odonto Ibe Odontologia Integrada, clínica no Jardim São Luís, Zona Leste de São Paulo.
+
+O `CLAUDE.md` registra o que cada projeto entregou e o que o próximo deve superar.

@@ -1,6 +1,9 @@
 /**
  * Textos da página inicial. Edite aqui para mudar o que aparece no site.
  * Não há travessões nos textos: use vírgula, ponto ou dois-pontos.
+ *
+ * Em `titleLines`, cada item é uma linha do título no desktop. Mantenha as
+ * linhas curtas (até cerca de 30 caracteres) para que caibam sem quebrar.
  */
 
 export const hero = {

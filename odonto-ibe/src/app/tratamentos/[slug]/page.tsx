@@ -55,7 +55,7 @@ export default async function TreatmentPage({ params }: PageProps<"/tratamentos/
               Todos os tratamentos
             </Link>
 
-            <MaskHeading as="h1" load delay={120} lines={[treatment.name]} className="mt-6 text-[clamp(2.5rem,6vw,5rem)] leading-none [--wght:600]" />
+            <MaskHeading as="h1" load settle={false} delay={120} lines={[treatment.name]} className="mt-6 text-[clamp(2.5rem,6vw,5rem)] leading-none [--wght:600]" />
 
             <p className="rv-fade mt-6 max-w-[44ch] text-lead text-stone" style={{ "--d": "360ms" } as CSSProperties}>
               {treatment.summary}

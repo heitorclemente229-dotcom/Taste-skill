@@ -89,7 +89,7 @@ export function Gallery() {
           if (event.target === event.currentTarget) close();
         }}
         aria-label="Foto ampliada"
-        className="sheet on-forest fixed inset-0 m-0 h-dvh w-full bg-forest/97 text-paper"
+        className="sheet on-forest fixed inset-0 m-0 h-dvh w-full bg-forest text-paper"
       >
         {current && index !== null ? (
           <div className="flex h-full flex-col">
